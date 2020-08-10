@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.rutebanken.superpom</groupId>
         <artifactId>superpom</artifactId>
-        <version>0.0.9-SNAPSHOT</version>
+        <version>0.0.14-SNAPSHOT</version>
     </parent>
 
     <groupId>no.rutebanken</groupId>
@@ -41,11 +41,11 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
-        <entur.helpers.version>0.0.6-SNAPSHOT</entur.helpers.version>
+        <entur.helpers.version>0.0.10-SNAPSHOT</entur.helpers.version>
         <keycloak.version>5.0.0</keycloak.version>
 
-        <entur-google-pubsub-version>0.0.6-SNAPSHOT</entur-google-pubsub-version>
-        <gcp-storage.version>0.0.6-SNAPSHOT</gcp-storage.version>
+        <entur-google-pubsub-version>0.0.10-SNAPSHOT</entur-google-pubsub-version>
+        <gcp-storage.version>0.0.10-SNAPSHOT</gcp-storage.version>
 
         <geodb.version>0.9</geodb.version>
         <geotools.version>20.1</geotools.version>
@@ -420,42 +420,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>enforce</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules combine.children="append">
-                                <requireMavenVersion>
-                                    <version>3</version>
-                                </requireMavenVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>${sonar-maven-plugin.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-            </plugin>
         </plugins>
     </build>
 </project>
