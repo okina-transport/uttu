@@ -18,9 +18,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.rutebanken.superpom</groupId>
+        <groupId>com.okina.springboot</groupId>
         <artifactId>superpom</artifactId>
-        <version>1.0.11</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>no.rutebanken</groupId>
@@ -43,11 +43,10 @@
         <entur.google.pubsub.emulator.download.skip>false</entur.google.pubsub.emulator.download.skip>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
-        <entur.helpers.version>1.0.22</entur.helpers.version>
-        <keycloak.version>5.0.0</keycloak.version>
+        <okina.helpers.version>1.0.24-SNAPSHOT</okina.helpers.version>
+        <keycloak.version>4.1.0.Final</keycloak.version>
 
-        <entur-google-pubsub-version>${entur.helpers.version}</entur-google-pubsub-version>
-        <gcp-storage.version>${entur.helpers.version}</gcp-storage.version>
+        <entur-google-pubsub-version>${okina.helpers.version}</entur-google-pubsub-version>
 
         <geodb.version>0.9</geodb.version>
         <geotools.version>20.1</geotools.version>
@@ -55,6 +54,12 @@
         <swagger-jersey2.version>1.5.24</swagger-jersey2.version>
         <javax.jdo.jdo2-api.version>2.3-eb</javax.jdo.jdo2-api.version>
         <com.vividsolutions.version>1.13</com.vividsolutions.version>
+
+        <!-- Docker & Fabric8 Configs -->
+        <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
+        <docker.from>registry.okina.fr/okina/java-base-image</docker.from>
+        <docker.image>registry.okina.fr/mosaic/${project.artifactId}:${project.version}</docker.image>
+        <docker.cleanup>none</docker.cleanup>
 
         <groovy-all.version>2.5.8</groovy-all.version>
         <rest-assured.version>3.1.1</rest-assured.version>
@@ -67,6 +72,7 @@
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+        <resteasy.version>3.1.4.Final</resteasy.version>
     </properties>
 
     <dependencies>
@@ -117,9 +123,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.entur.helpers</groupId>
+            <groupId>com.okina.helpers</groupId>
             <artifactId>organisation</artifactId>
-            <version>${entur.helpers.version}</version>
+            <version>${okina.helpers.version}</version>
         </dependency>
 
         <dependency>
@@ -176,11 +182,22 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-client</artifactId>
+            <version>${resteasy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson2-provider</artifactId>
+            <version>${resteasy.version}</version>
+        </dependency>
+
 
         <dependency>
-            <groupId>org.entur.helpers</groupId>
+            <groupId>com.okina.helpers</groupId>
             <artifactId>gcp-storage</artifactId>
-            <version>${gcp-storage.version}</version>
+            <version>${okina.helpers.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -336,14 +353,45 @@
         </dependency>
 
         <dependency>
-            <groupId>org.entur.helpers</groupId>
+            <groupId>com.okina.helpers</groupId>
             <artifactId>entur-google-pubsub</artifactId>
-            <version>${entur-google-pubsub-version}</version>
+            <version>${okina.helpers.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.image}</name>
+                            <build>
+                                <from>${docker.from}</from>
+                                <cleanup>${docker.cleanup}</cleanup>
+                                <assembly>
+                                    <basedir>/deployments</basedir>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                                <env>
+                                    <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
+                                </env>
+                                <runCmds>
+                                    <runCmd>mkdir /deployments/data</runCmd>
+                                    <runCmd>chown -R jboss:jboss /deployments/data</runCmd>
+                                </runCmds>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+
+
+
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>

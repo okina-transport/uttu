@@ -35,6 +35,15 @@ public class Codespace extends IdentifiedEntity {
     @NotNull
     private String xmlnsUrl;
 
+    public Codespace() {
+        // JPA compliance - empty constructor.
+    }
+
+    public Codespace(String xmlns, String xmlnsUrl) {
+        this.xmlns = xmlns;
+        this.xmlnsUrl = xmlnsUrl;
+    }
+
     public String getXmlnsUrl() {
         return xmlnsUrl;
     }

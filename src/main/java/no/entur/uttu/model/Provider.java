@@ -15,9 +15,12 @@
 
 package no.entur.uttu.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
@@ -25,6 +28,7 @@ import static no.entur.uttu.model.Constraints.PROVIDER_UNIQUE_CODE;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = PROVIDER_UNIQUE_CODE, columnNames = "code")})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Provider extends IdentifiedEntity {
     @NotNull
     private String code;
@@ -36,6 +40,8 @@ public class Provider extends IdentifiedEntity {
     @ManyToOne
     private Codespace codespace;
 
+    @Transient
+    public ChouetteInfo chouetteInfo;
 
     public String getName() {
         return name;
@@ -53,7 +59,6 @@ public class Provider extends IdentifiedEntity {
         this.codespace = codespace;
     }
 
-
     public String getCode() {
         return code;
     }
@@ -61,4 +66,9 @@ public class Provider extends IdentifiedEntity {
     public void setCode(String code) {
         this.code = code;
     }
+
+    public ChouetteInfo getChouetteInfo() {
+        return chouetteInfo;
+    }
+
 }

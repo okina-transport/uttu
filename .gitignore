@@ -93,3 +93,6 @@ fabric.properties
 target
 files
 dataset.zip
+
+src/main/resources/application-local.properties
+src/test/resources/application-local.properties

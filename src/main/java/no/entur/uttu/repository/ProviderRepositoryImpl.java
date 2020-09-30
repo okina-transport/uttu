@@ -15,15 +15,52 @@
 
 package no.entur.uttu.repository;
 
+import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.stereotype.Component;
-import javax.persistence.EntityManager;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Repository;
 
-@Component
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
+
+@Repository
 public class ProviderRepositoryImpl extends SimpleJpaRepository<Provider, Long> implements ProviderRepository {
 
     private final EntityManager entityManager;
+
+    @Autowired
+    CodespaceRepository codespaceRepository;
+
+    @Autowired
+    RestProviderDAO restProviderService;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Scheduled(fixedRateString = "${tiamat.provider.cache.refresh.interval:60000}")
+    @Transactional
+    public void populate() {
+        restProviderService.getProviders().stream()
+                .filter(provider -> !provider.getChouetteInfo().getReferential().startsWith("naq"))
+                .forEach(provider -> {
+                    String xmlns = provider.getChouetteInfo().getXmlns();
+                    provider.setCode(xmlns.toLowerCase());
+                    if (getOne(provider.getCode()) == null) {
+                        Codespace codeSpace = codespaceRepository.getOneByXmlns(xmlns);
+                        if (codeSpace == null) {
+                            provider.setCodespace(new Codespace(xmlns, provider.getChouetteInfo().getXmlnsurl()));
+                            codespaceRepository.save(provider.getCodespace());
+                        } else {
+                            provider.setCodespace(codeSpace);
+                        }
+                        save(provider);
+
+                    }
+                });
+    }
 
     public ProviderRepositoryImpl(EntityManager entityManager) {
         super(Provider.class, entityManager);

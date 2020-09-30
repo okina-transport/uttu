@@ -11,21 +11,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
+ *
  */
 
-package no.entur.uttu.repository;
+package no.entur.uttu.security;
 
-import no.entur.uttu.model.Provider;
+import org.keycloak.admin.client.Keycloak;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
+@Service
+public class TokenService {
 
-public interface ProviderRepository {
-    Provider getOne(String code);
+    @Autowired
+    private Keycloak keycloakClient;
 
-    Provider getOne(Long id);
 
-    List<Provider> findAll();
-
-    <S extends Provider> S save(S entity);
+    public String getToken() {
+        return keycloakClient.tokenManager().getAccessTokenString();
+    }
 
 }

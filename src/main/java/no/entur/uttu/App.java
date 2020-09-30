@@ -22,16 +22,22 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
+@Configuration
 @Import(GooglePubSubConfig.class)
 @EnableJpaRepositories(basePackages = {"no.entur.uttu.repository"},
         repositoryBaseClass = ProviderEntityRepositoryImpl.class)
 @EntityScan(basePackageClasses = {Provider.class, Jsr310JpaConverters.class})
 @EnableCaching
+@EnableTransactionManagement
+@EnableScheduling
 public class App {
 
     public static void main(String[] args) {

@@ -36,7 +36,7 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
 
     private String organisationRegistryUrl;
 
-    public OrganisationRegistryImpl(@Value("${organisation.registry.url:https://tjenester.entur.org/organisations/v1/organisations/}") String organisationRegistryUrl) {
+    public OrganisationRegistryImpl(@Value("${organisation.registry.url:https://tiamat-rmr.nouvelle-aquitaine.pro/api/organisations/1.0/}") String organisationRegistryUrl) {
         this.organisationRegistryUrl = organisationRegistryUrl;
     }
 
