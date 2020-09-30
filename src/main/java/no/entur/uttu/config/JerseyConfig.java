@@ -20,10 +20,9 @@ import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
 import no.entur.uttu.export.resource.ExportFileDownloadResource;
 import no.entur.uttu.graphql.resource.DataIntegrityViolationExceptionMapper;
-import no.entur.uttu.graphql.resource.FlexibleLinesGraphQLResource;
+import no.entur.uttu.graphql.resource.LinesGraphQLResource;
 import no.entur.uttu.graphql.resource.GeneralExceptionMapper;
 import no.entur.uttu.graphql.resource.ProviderGraphQLResource;
-import no.entur.uttu.health.rest.HealthResource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -36,64 +35,23 @@ public class JerseyConfig {
     @Bean
     public ServletRegistrationBean publicAPIJerseyConfig() {
         ServletRegistrationBean publicJersey
-                = new ServletRegistrationBean(new ServletContainer(new FlexibleLinesAPI()));
+                = new ServletRegistrationBean(new ServletContainer(new LinesAPI()));
         publicJersey.addUrlMappings("/services/flexible-lines/*");
         publicJersey.setName("FlexibleLinesAPI");
         publicJersey.setLoadOnStartup(0);
         return publicJersey;
     }
 
+    private class LinesAPI extends ResourceConfig {
 
-    @Bean
-    public ServletRegistrationBean privateJersey() {
-        ServletRegistrationBean privateJersey
-                = new ServletRegistrationBean(new ServletContainer(new HealthConfig()));
-        privateJersey.addUrlMappings("/health/*");
-        privateJersey.setName("PrivateJersey");
-        privateJersey.setLoadOnStartup(0);
-        return privateJersey;
-    }
-
-
-    private class FlexibleLinesAPI extends ResourceConfig {
-
-        public FlexibleLinesAPI() {
+        public LinesAPI() {
             register(CorsResponseFilter.class);
             register(DataIntegrityViolationExceptionMapper.class);
             register(GeneralExceptionMapper.class);
-            register(FlexibleLinesGraphQLResource.class);
+            register(LinesGraphQLResource.class);
             register(ProviderGraphQLResource.class);
             register(ExportFileDownloadResource.class);
         }
-
     }
 
-    private class HealthConfig extends ResourceConfig {
-
-        public HealthConfig() {
-            register(HealthResource.class);
-            register(DataIntegrityViolationExceptionMapper.class);
-            register(GeneralExceptionMapper.class);
-            configureSwagger();
-        }
-
-
-        private void configureSwagger() {
-            // Available at http://localhost:port/services/flexible-lines/rut/graphql
-            this.register(ApiListingResource.class);
-            this.register(SwaggerSerializers.class);
-
-            BeanConfig config = new BeanConfig();
-            config.setConfigId("uttu-health-swagger-doc");
-            config.setTitle("Uttu Health API");
-            config.setVersion("v1");
-            config.setSchemes(new String[]{"http", "https"});
-            config.setBasePath("/health");
-            config.setResourcePackage("no.entur.uttu.health");
-            config.setPrettyPrint(true);
-            config.setScan(true);
-            config.setScannerId("health-scanner");
-
-        }
-    }
 }
