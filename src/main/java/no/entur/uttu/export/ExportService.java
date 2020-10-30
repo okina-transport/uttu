@@ -17,7 +17,6 @@ package no.entur.uttu.export;
 
 import no.entur.uttu.error.codedexception.CodedIllegalArgumentException;
 import no.entur.uttu.export.blob.BlobStoreService;
-import no.entur.uttu.export.messaging.MessagingService;
 import no.entur.uttu.export.netex.DataSetProducer;
 import no.entur.uttu.export.netex.NetexExporter;
 import no.entur.uttu.model.job.Export;
@@ -45,8 +44,8 @@ public class ExportService {
     @Autowired
     private BlobStoreService blobStoreService;
 
-    @Autowired
-    private MessagingService messagingService;
+//    @Autowired
+//    private MessagingService messagingService;
 
     @Value("${export.working.folder:tmp}")
     private String workingFolder;
@@ -80,7 +79,8 @@ public class ExportService {
                 blobStoreService.uploadBlob(blobName, false, bis);
                 bis.reset();
                 // notify Marduk that a new export is available
-                messagingService.notifyExport(export.getProvider().getCode().toLowerCase());
+                // TODO à réactiver
+//                messagingService.notifyExport(export.getProvider().getCode().toLowerCase());
             }
             export.setFileName(exportFolder + ExportUtil.createBackupDataSetFilename(export));
             blobStoreService.uploadBlob(export.getFileName(), false, bis);

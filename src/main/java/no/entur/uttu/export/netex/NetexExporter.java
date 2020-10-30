@@ -83,7 +83,7 @@ public class NetexExporter {
                 .map(line -> netexLineFileProducer.toNetexFile(line, exportContext))
                 .forEach(netexFile -> marshalToFile(netexFile, dataSetProducer, validateAgainstSchema));
 
-        marshalToFile(commonFileProducer.toCommonFile(exportContext), dataSetProducer, validateAgainstSchema);
+        marshalToFile(commonFileProducer.toCommonFile(exportContext), dataSetProducer, false);
     }
 
     protected List<Line> findLinesToExport(Collection<ExportLineAssociation> exportLineAssociations, List<Line> lines) {

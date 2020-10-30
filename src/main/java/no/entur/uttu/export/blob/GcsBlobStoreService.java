@@ -32,7 +32,6 @@ public class GcsBlobStoreService implements BlobStoreService {
     @Value("${blobstore.gcs.credential.path}")
     private String credentialPath;
 
-
     @Value("${blobstore.gcs.project.id}")
     private String projectId;
 

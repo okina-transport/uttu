@@ -41,11 +41,14 @@ public class Organisation {
     public OrganisationContact customerContact;
 
     public String getAuthorityNetexId() {
-        if (!isAuthority() || references == null) {
-            return null;
-        }
+//        if (!isAuthority() || references == null) {
+//            return null;
+//        }
+//
+//        return references.get(NETEX_AUTHORITY_ID_REFEFRENCE_KEY);
 
-        return references.get(NETEX_AUTHORITY_ID_REFEFRENCE_KEY);
+        // TODO : no "type" for now in authorities, handling only authorities type
+        return id;
     }
 
     public String getOperatorNetexId() {

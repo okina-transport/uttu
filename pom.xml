@@ -38,7 +38,7 @@
 
     <properties>
 
-        <entur.google.pubsub.emulator.download.skip>false</entur.google.pubsub.emulator.download.skip>
+        <entur.google.pubsub.emulator.download.skip>true</entur.google.pubsub.emulator.download.skip>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <okina.helpers.version>1.0.24-SNAPSHOT</okina.helpers.version>
@@ -344,11 +344,11 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>com.okina.helpers</groupId>
-            <artifactId>entur-google-pubsub</artifactId>
-            <version>${okina.helpers.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.okina.helpers</groupId>-->
+<!--            <artifactId>entur-google-pubsub</artifactId>-->
+<!--            <version>${okina.helpers.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
