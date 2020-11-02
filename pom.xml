@@ -31,11 +31,6 @@
     <name>uttu</name>
     <description>Backend for Flexible Transport Editor</description>
 
-    <scm>
-        <connection>scm:git:ssh://git@github.com/entur/uttu.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/entur/uttu.git</developerConnection>
-    </scm>
-
     <properties>
 
         <entur.google.pubsub.emulator.download.skip>true</entur.google.pubsub.emulator.download.skip>
@@ -54,6 +49,13 @@
 
         <commons-io.version>2.7</commons-io.version>
 
+
+        <!-- Docker & Fabric8 Configs -->
+        <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
+        <docker.from>registry.okina.fr/okina/java-base-image</docker.from>
+        <docker.image>registry.okina.fr/mosaic/${project.artifactId}:${project.version}</docker.image>
+        <docker.cleanup>none</docker.cleanup>
+
         <groovy-all.version>2.5.8</groovy-all.version>
         <rest-assured.version>3.1.1</rest-assured.version>
         <graphql.version>11.0</graphql.version>
@@ -67,6 +69,28 @@
 
 
     </properties>
+
+
+    <repositories>
+        <repository>
+            <id>maven2</id>
+            <name>central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>osgeo</id>
+            <name>OSGeo Release Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+        <!--        <repository>-->
+        <!--            <id>repo.boundlessgeo.com-releases</id>-->
+        <!--            <name>repo.boundlessgeo.com-releases</name>-->
+        <!--            <url>http://repo.boundlessgeo.com/main</url>-->
+        <!--            <layout>default</layout>-->
+        <!--        </repository>-->
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -346,6 +370,36 @@
 
     <build>
         <plugins>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.image}</name>
+                            <build>
+                                <from>${docker.from}</from>
+                                <cleanup>${docker.cleanup}</cleanup>
+                                <assembly>
+                                    <basedir>/deployments</basedir>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                                <env>
+                                    <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
+                                </env>
+                                <runCmds>
+                                    <runCmd>mkdir /deployments/data</runCmd>
+                                    <runCmd>chown -R jboss:jboss /deployments/data</runCmd>
+                                </runCmds>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+
+
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
