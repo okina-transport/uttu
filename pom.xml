@@ -53,7 +53,7 @@
         <!-- Docker & Fabric8 Configs -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
         <docker.from>registry.okina.fr/okina/java-base-image</docker.from>
-        <docker.image>registry.okina.fr/mosaic/${project.artifactId}:${project.version}</docker.image>
+        <docker.image>registry.okina.fr/na/${project.artifactId}:${project.version}</docker.image>
         <docker.cleanup>none</docker.cleanup>
 
         <groovy-all.version>2.5.8</groovy-all.version>
