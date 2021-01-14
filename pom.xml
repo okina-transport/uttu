@@ -50,8 +50,6 @@
 
         <commons-io.version>2.7</commons-io.version>
 
-
-        <!-- Docker & Fabric8 Configs -->
         <groovy-all.version>2.5.8</groovy-all.version>
         <rest-assured.version>3.1.1</rest-assured.version>
         <graphql.version>11.0</graphql.version>

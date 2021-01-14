@@ -25,6 +25,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExportLineAssociationRepository extends CrudRepository<ExportLineAssociation, Long> {
 
+    // weird request due to https://hibernate.atlassian.net/browse/HHH-7314
     @Modifying
     @Query("DELETE FROM ExportLineAssociation ela WHERE ela.line IN " +
             "(SELECT line FROM Line line WHERE line.netexId=:lineNetexId)")
