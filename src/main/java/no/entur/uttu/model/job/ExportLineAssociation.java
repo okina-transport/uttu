@@ -10,7 +10,7 @@ import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
-public class ExportLineAssociation {
+public class ExportLineAssociation  {
     @Id
     @GeneratedValue(generator = "sequence_per_table_generator")
     protected Long id;

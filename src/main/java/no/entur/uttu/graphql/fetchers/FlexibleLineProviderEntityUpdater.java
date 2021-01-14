@@ -15,17 +15,31 @@
 
 package no.entur.uttu.graphql.fetchers;
 
+import graphql.schema.DataFetchingEnvironment;
 import no.entur.uttu.graphql.mappers.AbstractProviderEntityMapper;
 import no.entur.uttu.model.FlexibleLine;
+import no.entur.uttu.repository.ExportLineAssociationRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Service("flexibleLineUpdater")
-@Transactional
-public class FlexibleLineUpdater extends FlexibleLineProviderEntityUpdater {
+import static no.entur.uttu.graphql.GraphQLNames.FIELD_ID;
 
-    public FlexibleLineUpdater(AbstractProviderEntityMapper<FlexibleLine> mapper, ProviderEntityRepository<FlexibleLine> repository) {
+public abstract class FlexibleLineProviderEntityUpdater extends AbstractProviderEntityUpdater<FlexibleLine> {
+
+    @Autowired
+    private ExportLineAssociationRepository exportLineAssociationRepository;
+
+    protected FlexibleLineProviderEntityUpdater(AbstractProviderEntityMapper<FlexibleLine> mapper, ProviderEntityRepository<FlexibleLine> repository) {
         super(mapper, repository);
     }
+
+    @Override
+    protected FlexibleLine deleteEntity(DataFetchingEnvironment env) {
+        String id = env.getArgument(FIELD_ID);
+        verifyDeleteAllowed(id);
+        exportLineAssociationRepository.deleteByLineNetexId(id);
+        return repository.delete(id);
+    }
+
+
 }
