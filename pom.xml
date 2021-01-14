@@ -18,9 +18,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.okina.springboot</groupId>
-        <artifactId>superpom</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.2.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>no.rutebanken</groupId>
@@ -51,11 +52,6 @@
 
 
         <!-- Docker & Fabric8 Configs -->
-        <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <docker.from>registry.okina.fr/okina/java-base-image</docker.from>
-        <docker.image>registry.okina.fr/na/${project.artifactId}:${project.version}</docker.image>
-        <docker.cleanup>none</docker.cleanup>
-
         <groovy-all.version>2.5.8</groovy-all.version>
         <rest-assured.version>3.1.1</rest-assured.version>
         <graphql.version>11.0</graphql.version>
@@ -64,8 +60,8 @@
         <guava.version>28.1-jre</guava.version>
         <resteasy.version>3.1.4.Final</resteasy.version>
 
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
 
     </properties>
@@ -381,37 +377,6 @@
 
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker.maven.plugin.version}</version>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>${docker.image}</name>
-                            <build>
-                                <from>${docker.from}</from>
-                                <cleanup>${docker.cleanup}</cleanup>
-                                <assembly>
-                                    <basedir>/deployments</basedir>
-                                    <descriptorRef>artifact</descriptorRef>
-                                </assembly>
-                                <env>
-                                    <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
-                                </env>
-                                <runCmds>
-                                    <runCmd>mkdir /deployments/data</runCmd>
-                                    <runCmd>chown -R jboss:jboss /deployments/data</runCmd>
-                                </runCmds>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
-            </plugin>
-
-
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
