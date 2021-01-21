@@ -37,7 +37,7 @@ public class ExportUtil {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN);
 
     // In Marduk providers are identified with their migrated provider referential, thus the codespace must be prefixed.
-    public static final String MIGRATED_PROVIDER_PREFIX = "rb_";
+    public static final String MIGRATED_PROVIDER_PREFIX = "naq_";
 
     public static String createExportedDataSetFilename(Provider provider) {
         return MIGRATED_PROVIDER_PREFIX + provider.getCode().toLowerCase() + "-flexible-lines.zip";
