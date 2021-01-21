@@ -56,8 +56,8 @@ public class ExportService {
     @Value("${export.days.future.default:185}")
     private int futureDaysDefault;
 
-    @Value("${export.blob.folder:outbound/netex/}")
-    private String exportFolder = "outbound/netex/";
+    @Value("${export.blob.folder:outbound/flexible-lines/}")
+    private String exportFolder = "outbound/flexible-lines/";
 
 
     public void exportDataSet(Export export) {
