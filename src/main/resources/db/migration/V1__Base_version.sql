@@ -1863,8 +1863,8 @@ ALTER TABLE ONLY stop_point_in_journey_pattern
 --
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
+REVOKE ALL ON SCHEMA public FROM uttu;
+GRANT ALL ON SCHEMA public TO uttu;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 

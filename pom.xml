@@ -18,46 +18,48 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.entur.ror</groupId>
-        <artifactId>superpom</artifactId>
-        <version>1.56</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.2.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>no.rutebanken</groupId>
     <artifactId>uttu</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-mobi-iti-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>uttu</name>
     <description>Backend for Flexible Transport Editor</description>
 
-    <scm>
-        <connection>scm:git:ssh://git@github.com/entur/uttu.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/entur/uttu.git</developerConnection>
-    </scm>
-
     <properties>
 
-        <entur.google.pubsub.emulator.download.skip>false</entur.google.pubsub.emulator.download.skip>
+        <entur.google.pubsub.emulator.download.skip>true</entur.google.pubsub.emulator.download.skip>
 
-        <entur.helpers.version>1.92</entur.helpers.version>
+        <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
+        <okina.helpers.version>1.0.24-SNAPSHOT</okina.helpers.version>
+        <keycloak.version>4.1.0.Final</keycloak.version>
 
-        <entur-google-pubsub-version>${entur.helpers.version}</entur-google-pubsub-version>
-        <gcp-storage.version>${entur.helpers.version}</gcp-storage.version>
+        <postgis-jdbc.version>2.3.0</postgis-jdbc.version>
+        <geodb.version>0.9</geodb.version>
+        <geotools.version>20.1</geotools.version>
+        <wololo.version>0.13.0</wololo.version>
 
-        <postgis-jdbc.version>2021.1.0</postgis-jdbc.version>
-        <geotools.version>20.5</geotools.version>
-        <wololo.version>0.18.1</wololo.version>
+        <swagger-jersey2.version>1.6.2</swagger-jersey2.version>
+        <javax.jdo.jdo2-api.version>2.3-eb</javax.jdo.jdo2-api.version>
 
-        <swagger-jersey2.version>1.6.9</swagger-jersey2.version>
-        <javax.jdo.jdo2-api.version>2.3-20090302111651</javax.jdo.jdo2-api.version>
+        <commons-io.version>2.7</commons-io.version>
 
-        <commons-io.version>2.11.0</commons-io.version>
-        <groovy-all.version>2.5.21</groovy-all.version>
-        <rest-assured.version>4.5.1</rest-assured.version>
+        <groovy-all.version>2.5.8</groovy-all.version>
+        <rest-assured.version>3.1.1</rest-assured.version>
         <graphql.version>11.0</graphql.version>
-        <netex-java-model.version>1.0.14</netex-java-model.version>
+        <netex-java-model.version>1.0.9-SNAPSHOT</netex-java-model.version>
 
+        <guava.version>28.1-jre</guava.version>
+        <resteasy.version>3.1.4.Final</resteasy.version>
+
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
     </properties>
     <repositories>
@@ -80,42 +82,44 @@
             <version>${netex-java-model.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
+            <groupId>com.okina.helpers</groupId>
             <artifactId>organisation</artifactId>
-            <version>${entur.helpers.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>gcp-storage</artifactId>
-            <version>${gcp-storage.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-codec-http2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-lite</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>entur-google-pubsub</artifactId>
-            <version>${entur-google-pubsub-version}</version>
+            <version>${okina.helpers.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>oauth2</artifactId>
-            <version>${entur.helpers.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.entur.ror.helpers</groupId>-->
+<!--            <artifactId>gcp-storage</artifactId>-->
+<!--            <version>${gcp-storage.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <groupId>javax.servlet</groupId>-->
+<!--                    <artifactId>servlet-api</artifactId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <groupId>io.netty</groupId>-->
+<!--                    <artifactId>netty-codec-http2</artifactId>-->
+<!--                </exclusion>-->
+<!--                <exclusion>-->
+<!--                    <groupId>com.google.protobuf</groupId>-->
+<!--                    <artifactId>protobuf-lite</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.entur.ror.helpers</groupId>-->
+<!--            <artifactId>oauth2</artifactId>-->
+<!--            <version>${entur.helpers.version}</version>-->
+<!--        </dependency>-->
 
         <!-- Spring -->
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.11.4</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -202,6 +206,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
+            <version>6.2</version>
         </dependency>
 
         <dependency>
@@ -223,6 +228,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
         <dependency>
@@ -233,6 +239,30 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>${keycloak.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-tomcat8-adapter</artifactId>
+            <version>${keycloak.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-2-adapter</artifactId>
+            <version>${keycloak.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-security-adapter</artifactId>
+            <version>${keycloak.version}</version>
         </dependency>
 
         <dependency>
@@ -266,6 +296,23 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-client</artifactId>
+            <version>${resteasy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson2-provider</artifactId>
+            <version>${resteasy.version}</version>
         </dependency>
 
 
@@ -317,17 +364,16 @@
                         <id>test-compile</id>
                         <phase>test-compile</phase>
                         <configuration>
-                            <target>
+                            <tasks>
                                 <mkdir dir="${basedir}/src/test/groovy"/>
                                 <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">
                                     <classpath refid="maven.test.classpath"/>
                                 </taskdef>
                                 <mkdir dir="${project.build.testOutputDirectory}"/>
-                                <groovyc destdir="${project.build.testOutputDirectory}"
-                                         srcdir="${basedir}/src/test/groovy/" listfiles="true">
+                                <groovyc destdir="${project.build.testOutputDirectory}" srcdir="${basedir}/src/test/groovy/" listfiles="true">
                                     <classpath refid="maven.test.classpath"/>
                                 </groovyc>
-                            </target>
+                            </tasks>
                         </configuration>
                         <goals>
                             <goal>run</goal>

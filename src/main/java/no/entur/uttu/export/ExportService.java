@@ -47,8 +47,7 @@ public class ExportService {
     @Autowired
     private BlobStoreService blobStoreService;
 
-    @Autowired
-    private MessagingService messagingService;
+
 
     @Value("${export.working.folder:tmp}")
     private String workingFolder;
@@ -78,8 +77,6 @@ public class ExportService {
                 String blobName = exportFolder + ExportUtil.createExportedDataSetFilename(export.getProvider(), exportedFilenameSuffix);
                 blobStoreService.uploadBlob(blobName, false, bis);
                 bis.reset();
-                // notify Marduk that a new export is available
-                messagingService.notifyExport(export.getProvider().getCode().toLowerCase());
                 exportedLines.stream()
                         .map(ExportedLineStatisticsService::toExportedLineStatistics)
                         .forEach(export::addExportedLineStatistics);

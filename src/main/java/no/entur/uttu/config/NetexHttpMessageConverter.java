@@ -42,7 +42,7 @@ public class NetexHttpMessageConverter extends AbstractXmlHttpMessageConverter<O
         return clazz.isAssignableFrom(StopPlace.class);
     }
 
-    @Override
+
     public List<MediaType> getSupportedMediaTypes(Class<?> clazz) {
         return List.of(MediaType.APPLICATION_XML);
     }

@@ -28,7 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
-@Profile({"local", "test"})
+@Profile({"local", "test","localFile-blobstore"})
 public class LocalDiskBlobStoreService implements BlobStoreService {
 
     @Value("${blobstore.local.folder:files/blob}")

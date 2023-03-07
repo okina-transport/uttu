@@ -13,9 +13,10 @@
  * limitations under the Licence.
  */
 
-package no.entur.uttu.organisation.legacy;
+package no.entur.uttu.organisation;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import no.entur.uttu.organisation.legacy.OrganisationContact;
 
 import java.util.Map;
 import java.util.Set;
