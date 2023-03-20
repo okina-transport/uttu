@@ -17,6 +17,7 @@ package no.entur.uttu.stubs;
 
 import no.entur.uttu.config.NetexHttpMessageConverter;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
+import org.locationtech.jts.geom.Polygon;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,11 @@ public class StopPlaceRegistryStub implements StopPlaceRegistry {
             return Optional.empty();
         }
 
+
+    }
+
+    @Override
+    public void getMembersForArea(Polygon polygon) {
 
     }
 }
