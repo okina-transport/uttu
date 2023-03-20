@@ -90,6 +90,93 @@
     <StopPlaceType>railStation</StopPlaceType>
     <Weighting>preferredInterchange</Weighting>
     <quays>
+        <Quay changed="2018-11-29T10:23:41.129" modification="new" version="44" id="MOBIITI:Quay:70">
+            <keyList>
+                <KeyValue>
+                    <Key>grails-platformId</Key>
+                    <Value>6170</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>uicCode</Key>
+                    <Value>7600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>imported-id</Key>
+                    <Value>TOTO:Quay:760010015,PLOP:Quay:007600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>tpsiId</Key>
+                    <Value>760010015</Value>
+                </KeyValue>
+            </keyList>
+            <PrivateCode>15</PrivateCode>
+            <Centroid>
+                <Location>
+                    <Longitude>10.754734</Longitude>
+                    <Latitude>59.910123</Latitude>
+                </Location>
+            </Centroid>
+            <OtherTransportModes></OtherTransportModes>
+            <PublicCode>15</PublicCode>
+        </Quay>
+        <Quay changed="2018-11-29T10:23:41.129" modification="new" version="44" id="MOBIITI:Quay:69">
+            <keyList>
+                <KeyValue>
+                    <Key>grails-platformId</Key>
+                    <Value>6170</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>uicCode</Key>
+                    <Value>7600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>imported-id</Key>
+                    <Value>TOTO:Quay:69,PLOP:Quay:007600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>tpsiId</Key>
+                    <Value>760010015</Value>
+                </KeyValue>
+            </keyList>
+            <PrivateCode>15</PrivateCode>
+            <Centroid>
+                <Location>
+                    <Longitude>10.754734</Longitude>
+                    <Latitude>59.910123</Latitude>
+                </Location>
+            </Centroid>
+            <OtherTransportModes></OtherTransportModes>
+            <PublicCode>15</PublicCode>
+        </Quay>
+        <Quay changed="2018-11-29T10:23:41.129" modification="new" version="44" id="MOBIITI:Quay:3513">
+            <keyList>
+                <KeyValue>
+                    <Key>grails-platformId</Key>
+                    <Value>6170</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>uicCode</Key>
+                    <Value>7600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>imported-id</Key>
+                    <Value>TOTO:Quay:760010015,PLOP:Quay:007600100</Value>
+                </KeyValue>
+                <KeyValue>
+                    <Key>tpsiId</Key>
+                    <Value>760010015</Value>
+                </KeyValue>
+            </keyList>
+            <PrivateCode>15</PrivateCode>
+            <Centroid>
+                <Location>
+                    <Longitude>10.754734</Longitude>
+                    <Latitude>59.910123</Latitude>
+                </Location>
+            </Centroid>
+            <OtherTransportModes></OtherTransportModes>
+            <PublicCode>15</PublicCode>
+        </Quay>
         <Quay changed="2018-11-29T10:23:41.129" modification="new" version="44" id="NSR:Quay:563">
             <keyList>
                 <KeyValue>

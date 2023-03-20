@@ -16,11 +16,8 @@
 package no.entur.uttu.stopplace;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,14 +39,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.jdo.annotations.Cacheable;
-import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -140,19 +134,15 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
         return new HttpEntity<>(headers);
     }
 
-    public void getMembersForArea(Polygon polygon)  {
+    public List<StopPlaceView> getMembersForArea(Polygon polygon)  {
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stopPlaceRegistryUrl + "netex/getTADStopPlaces");
         builder.replaceQueryParam("area", polygon.toString());
 
 
         try {
-
             HashMap<String, String> postDataParams = new HashMap<>();
             postDataParams.put("area", polygon.toString());
-
-
-
 
             URL url = new URL(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams));
             HttpURLConnection connection = null;
@@ -164,58 +154,14 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
             InputStream inputStream = connection.getInputStream();
             String resultString = new BufferedReader( new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines() .collect(Collectors.joining("\n"));
 
-            List<StopPlaceView> stopPlaceViews = convertJSONtoObjects(resultString);
-            System.out.println("plop");
-
-//            OutputStream os = connection.getOutputStream();
-//            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-//            writer.write(getPostDataString(postDataParams));
-//
-//            writer.flush();
-//            writer.close();
-//            os.close();
-//            String response = "";
-//
-//            int responseCode = connection.getResponseCode();
-//            if (responseCode == HttpsURLConnection.HTTP_OK) {
-//                String line;
-//                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-//                while ((line=br.readLine()) != null) {
-//                    response += line;
-//                }
-//            }
-//            else {
-//                response="";
-//            }
-
-
-
-
+            return convertJSONtoObjects(resultString);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error while getting members for area",e);
         }
-
-
-       // ResponseEntity<Object[]> result = restTemplate.getForEntity(builder.build().encode().toUri(), Object[].class);
-
-//        ResponseEntity<Object[]> exchange = restTemplate.exchange(
-//                builder.build().encode().toUri(),
-//                HttpMethod.GET,
-//                createHttpEntity(MediaType.APPLICATION_JSON),
-//                Object[].class
-//        );
-
-
-
-
-
     }
 
     private List<StopPlaceView> convertJSONtoObjects(String jsonDisruptions) throws JsonProcessingException {
                 ObjectMapper objectMapper = new ObjectMapper();
-//        SimpleModule module =                new SimpleModule("CustomStopPlaceViewDeserializer", new Version(1, 0, 0, null, null, null));
-//        module.addDeserializer(StopPlaceView.class, new CustomStopPlaceViewDeserializer());
-//        objectMapper.registerModule(module);
         return objectMapper.readValue(jsonDisruptions, new TypeReference<List<StopPlaceView>>(){});
 
     }

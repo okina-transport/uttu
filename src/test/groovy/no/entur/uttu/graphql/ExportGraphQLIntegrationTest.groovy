@@ -93,4 +93,13 @@ class ExportGraphQLIntegrationTest extends AbstractFlexibleLinesGraphQLIntegrati
         ValidatableResponse deleteLineRsp = executeGraphQL(deleteLineMutation, deleteLineVariables)
                 .body("data.deleteFlexibleLine.id", equalTo(lineRef))
     }
+
+    ValidatableResponse createFlexibleLine(String name, String operatorRef) {
+        String networkId = getNetworkId(createNetwork(name))
+        String flexAreaStopPlaceId = getFlexibleStopPlaceId(createFlexibleStopPlaceWithFlexibleArea(name + "FlexArea1"))
+        String flexAreaStopPlaceId2 = getFlexibleStopPlaceId(createFlexibleStopPlaceWithFlexibleArea(name + "FlexArea2"))
+        return createFlexibleLine(name, operatorRef, networkId, flexAreaStopPlaceId, flexAreaStopPlaceId2)
+    }
+
+
 }
