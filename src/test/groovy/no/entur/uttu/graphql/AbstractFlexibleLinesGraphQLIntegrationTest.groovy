@@ -138,30 +138,7 @@ abstract class AbstractFlexibleLinesGraphQLIntegrationTest extends AbstractGraph
         "keyValues": [{
           "key": "foo",
           "values": ["bar", "baz"]
-        }],
-           "flexibleArea": {
-      "polygon": {
-        "coordinates": [
-          [
-            2.1,
-            3.3
-          ],
-          [
-            4.1,
-            5.2
-          ],
-          [
-            4.9,
-            5.9
-          ],
-          [
-            2.1,
-            3.3
-          ]
-        ],
-        "type": "Polygon"
-      }
-    },
+        }],         
         "hailAndRideArea": {"startQuayRef": "NSR:Quay:start","endQuayRef": "NSR:Quay:end"}
     }
         }"""
