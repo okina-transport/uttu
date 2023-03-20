@@ -132,7 +132,7 @@ public class ServiceCalendarFrameProducer {
                        .withVersion(Objects.toString(local.getVersion()))
                        .withOrder(BigInteger.valueOf(index))
                        .withDate(date)
-                       .withOperatingPeriodRef(operatingPeriodRefStructure)
+                       .withOperatingPeriodRef(objectFactory.wrapAsJAXBElement(operatingPeriodRefStructure))
                        .withDayTypeRef(dayTypeRefStructure)
                        .withIsAvailable(local.getAvailable());
     }

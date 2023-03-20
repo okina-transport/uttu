@@ -20,14 +20,14 @@ import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.FlexibleArea;
 import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.model.HailAndRideArea;
-import org.rutebanken.netex.model.FlexibleStopPlace_VersionStructure;
-import org.rutebanken.netex.model.PointRefStructure;
-import org.rutebanken.netex.model.ScheduledStopPointRefStructure;
-import org.rutebanken.netex.model.VehicleModeEnumeration;
+import no.entur.uttu.stopplace.StopPlaceRegistry;
+import org.locationtech.jts.geom.Polygon;
+import org.rutebanken.netex.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,6 +35,9 @@ public class FlexibleStopPlaceProducer {
 
     @Autowired
     private NetexObjectFactory objectFactory;
+
+    @Autowired
+    private StopPlaceRegistry stopPlaceregistry;
 
     public List<org.rutebanken.netex.model.FlexibleStopPlace> produce(NetexExportContext context) {
         return context.flexibleStopPlaces.stream().map(localStopPlace -> mapFlexibleStopPlace(localStopPlace, context)).collect(Collectors.toList());
@@ -49,16 +52,44 @@ public class FlexibleStopPlaceProducer {
             netexQuay = mapHailAndRideArea(localStopPlace, context);
         }
 
-        return new org.rutebanken.netex.model.FlexibleStopPlace()
-                       .withId(localStopPlace.getNetexId())
-                       .withVersion(localStopPlace.getNetexVersion())
-                       .withName(objectFactory.createMultilingualString(localStopPlace.getName()))
-                       .withDescription(objectFactory.createMultilingualString(localStopPlace.getDescription()))
-                       .withTransportMode(objectFactory.mapEnum(localStopPlace.getTransportMode(), VehicleModeEnumeration.class))
-                       .withPrivateCode(objectFactory.createPrivateCodeStructure(localStopPlace.getPrivateCode()))
-                       .withAreas(new FlexibleStopPlace_VersionStructure.Areas().withFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea(netexQuay))
-                       .withKeyList(objectFactory.mapKeyValues(localStopPlace.getKeyValues()));
+        org.rutebanken.netex.model.FlexibleStopPlace netexFlexibleStopPlace = new org.rutebanken.netex.model.FlexibleStopPlace()
+                            .withId(localStopPlace.getNetexId())
+                            .withVersion(localStopPlace.getNetexVersion())
+                            .withName(objectFactory.createMultilingualString(localStopPlace.getName()))
+                            .withDescription(objectFactory.createMultilingualString(localStopPlace.getDescription()))
+                            .withTransportMode(objectFactory.mapEnum(localStopPlace.getTransportMode(), AllVehicleModesOfTransportEnumeration.class))
+                            .withPrivateCode(objectFactory.createPrivateCodeStructure(localStopPlace.getPrivateCode()))
+                            .withAreas(new FlexibleStopPlace_VersionStructure.Areas().withFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea(netexQuay))
+                            .withKeyList(objectFactory.mapKeyValues(localStopPlace.getKeyValues()));
+
+        //For fixedStopAreas, we need to write members in the area
+        feedMembers(netexFlexibleStopPlace, localStopPlace);
+
+        return netexFlexibleStopPlace;
     }
+
+    private void feedMembers(org.rutebanken.netex.model.FlexibleStopPlace netexFlexibleStopPlace, FlexibleStopPlace originalStop) {
+        Optional<String> areaTypeOpt = getStopAreaType(netexFlexibleStopPlace);
+
+        if(areaTypeOpt.isEmpty() || !areaTypeOpt.get().equals("UnrestrictedPublicTransportAreas")){
+            return;
+        }
+
+        Polygon polygon = originalStop.getFlexibleArea().getPolygon();
+        stopPlaceregistry.getMembersForArea(polygon);
+
+    }
+
+    private Optional<String> getStopAreaType(org.rutebanken.netex.model.FlexibleStopPlace stopArea){
+
+        for (KeyValueStructure keyValueStructure : stopArea.getKeyList().getKeyValue()) {
+            if (keyValueStructure.getKey().equals("FlexibleStopAreaType")){
+                return Optional.of(keyValueStructure.getValue());
+            }
+        }
+        return Optional.empty();
+    }
+
 
     private org.rutebanken.netex.model.FlexibleArea mapFlexibleArea(FlexibleStopPlace flexibleStopPlace, NetexExportContext context) {
         FlexibleArea localArea = flexibleStopPlace.getFlexibleArea();

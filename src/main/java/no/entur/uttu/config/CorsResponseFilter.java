@@ -21,7 +21,7 @@ public class CorsResponseFilter implements Filter {
 
         httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
         httpServletResponse.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS, POST, DELETE, PUT");
-        httpServletResponse.setHeader("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, Accept, X-Correlation-Id, entur-pos, x-okina-referential, maxNbResults, providerName,Name,et-client-name ");
+        httpServletResponse.setHeader("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, Accept, X-Correlation-Id, entur-pos, x-okina-referential, maxNbResults, providerName,Name,et-client-name,correlation-id,cache-control");
         httpServletResponse.setHeader("Access-Control-Max-Age", "3600");
         // If the call is an options call, do not return a body
         HttpServletRequest req = (HttpServletRequest) servletRequest;

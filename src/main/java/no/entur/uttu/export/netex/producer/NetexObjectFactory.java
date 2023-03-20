@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.namespace.QName;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -52,6 +53,8 @@ public class NetexObjectFactory {
     public static final String NSR_XMLNS = "NSR";
     public static final String NSR_XMLNSURL = "http://www.rutebanken.org/ns/nsr";
 
+    private static final QName _AuthorityRef_QNAME = new QName("http://www.netex.org.uk/netex", "AuthorityRef");
+
     @Value("${netex.export.version:1.11:NO-NeTEx-networktimetable:1.3}")
     private String netexVersion;
 
@@ -71,6 +74,15 @@ public class NetexObjectFactory {
         return new JAXBElement(new QName("http://www.netex.org.uk/netex", getEntityName(entity)), entity.getClass(), null, entity);
     }
 
+    @XmlElementDecl(
+            namespace = "http://www.netex.org.uk/netex",
+            name = "AuthorityRef",
+            substitutionHeadNamespace = "http://www.netex.org.uk/netex",
+            substitutionHeadName = "TransportOrganisationRef"
+    )
+    public JAXBElement<AuthorityRef> createAuthorityRef(AuthorityRef value) {
+        return new JAXBElement(_AuthorityRef_QNAME, AuthorityRef.class, (Class)null, value);
+    }
     public <N extends LinkSequence_VersionStructure, L extends no.entur.uttu.model.GroupOfEntities_VersionStructure> N populate(N netex, L local) {
         return (N) populateId(netex, local.getRef())
                            .withName(createMultilingualString(local.getName()))
@@ -166,6 +178,9 @@ public class NetexObjectFactory {
 
     public ResourceFrame createResourceFrame(NetexExportContext context, Collection<Authority> authorities, Collection<Operator> operators) {
         String resourceFrameId = NetexIdProducer.generateId(ResourceFrame.class, context);
+
+
+
         OrganisationsInFrame_RelStructure organisationsStruct = objectFactory.createOrganisationsInFrame_RelStructure()
                                                                         .withOrganisation_(authorities.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()))
                                                                         .withOrganisation_(operators.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()));
@@ -279,7 +294,7 @@ public class NetexObjectFactory {
 
     public TimetableFrame createTimetableFrame(NetexExportContext context, Collection<ServiceJourney> serviceJourneys, Collection<NoticeAssignment> noticeAssignments) {
         JourneysInFrame_RelStructure journeysInFrameRelStructure = objectFactory.createJourneysInFrame_RelStructure();
-        journeysInFrameRelStructure.getDatedServiceJourneyOrDeadRunOrServiceJourney().addAll(serviceJourneys);
+        journeysInFrameRelStructure.getVehicleJourneyOrDatedVehicleJourneyOrNormalDatedVehicleJourney().addAll(serviceJourneys);
 
         orderAssignments(noticeAssignments);
 

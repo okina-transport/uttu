@@ -15,26 +15,45 @@
 
 package no.entur.uttu.stopplace;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import no.entur.uttu.config.NetexHttpMessageConverter;
+
+import no.entur.uttu.model.StopPlaceView;
+import no.entur.uttu.security.TokenService;
+import org.locationtech.jts.geom.Polygon;
+import org.rutebanken.netex.model.StopPlace;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.jdo.annotations.Cacheable;
-import java.util.Collections;
-import java.util.Optional;
+import javax.net.ssl.HttpsURLConnection;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Integrates with https://github.com/entur/mummu stop place registry API
@@ -46,6 +65,8 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
     private static final Logger logger = LoggerFactory.getLogger(DefaultStopPlaceRegistry.class);
 
     private RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private TokenService tokenService;
 
     private static final String ET_CLIENT_ID_HEADER = "ET-Client-ID";
     private static final String ET_CLIENT_NAME_HEADER = "ET-Client-Name";
@@ -88,12 +109,20 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
     private org.rutebanken.netex.model.StopPlace lookupStopPlaceByQuayRef(String quayRef) {
         try {
-            return restTemplate.exchange(
-                    stopPlaceRegistryUrl + "/quays/" + quayRef + "/stop-place",
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("netexQuayId", quayRef);
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stopPlaceRegistryUrl + "tad_stop_place_from_quay");
+            builder.replaceQueryParam("quayId", quayRef);
+
+            ResponseEntity<StopPlace> exchange = restTemplate.exchange(
+                    builder.build().encode().toUri(),
                     HttpMethod.GET,
                     createHttpEntity(),
-                    org.rutebanken.netex.model.StopPlace.class
-            ).getBody();
+                    StopPlace.class
+            );
+
+            return exchange.getBody();
         } catch (Exception e) {
             logger.warn(e.getMessage());
             return null;
@@ -101,10 +130,110 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
     }
 
     private HttpEntity<Void> createHttpEntity() {
+        return createHttpEntity(MediaType.APPLICATION_XML);
+    }
+    private HttpEntity<Void> createHttpEntity( MediaType mediaType) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
+        headers.setAccept(Collections.singletonList(mediaType));
         headers.set(ET_CLIENT_NAME_HEADER, clientName);
         headers.set(ET_CLIENT_ID_HEADER, clientId);
         return new HttpEntity<>(headers);
+    }
+
+    public void getMembersForArea(Polygon polygon)  {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stopPlaceRegistryUrl + "netex/getTADStopPlaces");
+        builder.replaceQueryParam("area", polygon.toString());
+
+
+        try {
+
+            HashMap<String, String> postDataParams = new HashMap<>();
+            postDataParams.put("area", polygon.toString());
+
+
+
+
+            URL url = new URL(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams));
+            HttpURLConnection connection = null;
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-type", "application/json");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Authorization", "Bearer " + tokenService.getToken());
+            InputStream inputStream = connection.getInputStream();
+            String resultString = new BufferedReader( new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines() .collect(Collectors.joining("\n"));
+
+            List<StopPlaceView> stopPlaceViews = convertJSONtoObjects(resultString);
+            System.out.println("plop");
+
+//            OutputStream os = connection.getOutputStream();
+//            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+//            writer.write(getPostDataString(postDataParams));
+//
+//            writer.flush();
+//            writer.close();
+//            os.close();
+//            String response = "";
+//
+//            int responseCode = connection.getResponseCode();
+//            if (responseCode == HttpsURLConnection.HTTP_OK) {
+//                String line;
+//                BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//                while ((line=br.readLine()) != null) {
+//                    response += line;
+//                }
+//            }
+//            else {
+//                response="";
+//            }
+
+
+
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+       // ResponseEntity<Object[]> result = restTemplate.getForEntity(builder.build().encode().toUri(), Object[].class);
+
+//        ResponseEntity<Object[]> exchange = restTemplate.exchange(
+//                builder.build().encode().toUri(),
+//                HttpMethod.GET,
+//                createHttpEntity(MediaType.APPLICATION_JSON),
+//                Object[].class
+//        );
+
+
+
+
+
+    }
+
+    private List<StopPlaceView> convertJSONtoObjects(String jsonDisruptions) throws JsonProcessingException {
+                ObjectMapper objectMapper = new ObjectMapper();
+//        SimpleModule module =                new SimpleModule("CustomStopPlaceViewDeserializer", new Version(1, 0, 0, null, null, null));
+//        module.addDeserializer(StopPlaceView.class, new CustomStopPlaceViewDeserializer());
+//        objectMapper.registerModule(module);
+        return objectMapper.readValue(jsonDisruptions, new TypeReference<List<StopPlaceView>>(){});
+
+    }
+
+    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException{
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+        for(Map.Entry<String, String> entry : params.entrySet()){
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+        }
+
+        return result.toString();
     }
 }

@@ -15,8 +15,11 @@
 
 package no.entur.uttu.stopplace;
 
+import org.locationtech.jts.geom.Polygon;
+
 import java.util.Optional;
 
 public interface StopPlaceRegistry {
     Optional<org.rutebanken.netex.model.StopPlace> getStopPlaceByQuayRef(String quayRef);
+    void getMembersForArea(Polygon polygon);
 }

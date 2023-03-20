@@ -18,9 +18,12 @@ package no.entur.uttu.export.netex.producer.common;
 import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.Network;
+import org.rutebanken.netex.model.AuthorityRef;
+import org.rutebanken.netex.model.AuthorityRefStructure;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,11 +41,18 @@ public class NetworkProducer {
     }
 
     private org.rutebanken.netex.model.Network mapNetwork(Network local, NetexExportContext context) {
-        return new org.rutebanken.netex.model.Network()
-                       .withId(local.getNetexId())
-                       .withVersion(local.getNetexVersion())
-                       .withName(objectFactory.createMultilingualString(local.getName()))
-                       .withDescription(objectFactory.createMultilingualString(local.getDescription()))
-                       .withTransportOrganisationRef(objectFactory.wrapAsJAXBElement(organisationProducer.produceAuthorityRef(local.getAuthorityRef(), true, context)));
+        org.rutebanken.netex.model.Network network = new org.rutebanken.netex.model.Network()
+                .withId(local.getNetexId())
+                .withVersion(local.getNetexVersion())
+                .withName(objectFactory.createMultilingualString(local.getName()))
+                .withDescription(objectFactory.createMultilingualString(local.getDescription()))
+               ;
+
+
+        JAXBElement<AuthorityRef> authorRef = objectFactory.createAuthorityRef(organisationProducer.produceAuthorityRef(local.getAuthorityRef(), context));
+        //JAXBElement<AuthorityRefStructure> oragaRef = objectFactory.wrapAsJAXBElement(organisationProducer.produceAuthorityRef(local.getAuthorityRef(), true, context));
+        network.setTransportOrganisationRef(authorRef);
+
+        return network;
     }
 }

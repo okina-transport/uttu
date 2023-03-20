@@ -53,8 +53,7 @@
         <groovy-all.version>2.5.8</groovy-all.version>
         <rest-assured.version>3.1.1</rest-assured.version>
         <graphql.version>11.0</graphql.version>
-        <netex-java-model.version>1.0.9-SNAPSHOT</netex-java-model.version>
-
+        <netex-java-model.version>2.0.4-NETEX-FR</netex-java-model.version>
         <guava.version>28.1-jre</guava.version>
         <resteasy.version>3.1.4.Final</resteasy.version>
 
@@ -77,7 +76,7 @@
 
         <!-- Entur -->
         <dependency>
-            <groupId>org.entur</groupId>
+            <groupId>com.okina</groupId>
             <artifactId>netex-java-model</artifactId>
             <version>${netex-java-model.version}</version>
         </dependency>

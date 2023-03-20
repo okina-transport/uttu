@@ -19,16 +19,12 @@ import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.job.SeverityEnumeration;
 import no.entur.uttu.organisation.OrganisationRegistry;
-import org.rutebanken.netex.model.Authority;
-import org.rutebanken.netex.model.AuthorityRefStructure;
-import org.rutebanken.netex.model.GeneralOrganisation;
-import org.rutebanken.netex.model.KeyValueStructure;
-import org.rutebanken.netex.model.Operator;
-import org.rutebanken.netex.model.OperatorRefStructure;
-import org.rutebanken.netex.model.Organisation_VersionStructure;
+import org.apache.commons.lang3.StringUtils;
+import org.rutebanken.netex.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -76,12 +72,17 @@ public class OrganisationProducer {
 
         GeneralOrganisation organisation = orgRegAuthority.get();
 
-        if (organisation.getContactDetails() == null || !validateContactUrl(organisation.getContactDetails().getUrl())) {
-            context.addExportMessage(SeverityEnumeration.ERROR, "Invalid authority contact: {0}", organisation.getContactDetails());
-        }
+
+        fillVersionIfEmpty(organisation);
 
         return populateNetexOrganisation(new Authority(), organisation)
                        .withId(getAuthorityNetexId(organisation));
+    }
+
+    private void fillVersionIfEmpty( GeneralOrganisation organisation){
+        if (StringUtils.isEmpty(organisation.getVersion())){
+            organisation.setVersion("any");
+        }
     }
 
     private boolean validateContactUrl(String url) {
@@ -97,6 +98,8 @@ public class OrganisationProducer {
 
         GeneralOrganisation organisation = orgRegOperator.get();
 
+        fillVersionIfEmpty(organisation);
+
         return populateNetexOrganisation(new Operator(), organisation)
                        .withId(getOperatorNetexId(organisation))
                        .withCustomerServiceContactDetails(organisation.getContactDetails());
@@ -104,11 +107,14 @@ public class OrganisationProducer {
 
 
     private <N extends Organisation_VersionStructure> N populateNetexOrganisation(N netexOrg, GeneralOrganisation orgRegOrg) {
+
+
         netexOrg
                 .withVersion(orgRegOrg.getVersion())
                 .withName(orgRegOrg.getName())
                 .withCompanyNumber(orgRegOrg.getCompanyNumber())
                 .withContactDetails(orgRegOrg.getContactDetails())
+                .withOrganisationType(orgRegOrg.getOrganisationType())
                 .withLegalName(orgRegOrg.getLegalName());
         return netexOrg;
     }
@@ -129,4 +135,11 @@ public class OrganisationProducer {
                         .flatMap(value -> Arrays.stream(value).filter(id -> id.contains(type)).findFirst())).orElse(organisation.getId());
     }
 
+    public AuthorityRef produceAuthorityRef(String authorityRef, NetexExportContext  context) {
+        Authority authority = mapAuthority(authorityRef, context);
+        AuthorityRef authorRef = new AuthorityRef();
+        authorRef.setRef(authority.getId());
+        authorRef.setVersion(authority.getVersion());
+        return authorRef;
+    }
 }

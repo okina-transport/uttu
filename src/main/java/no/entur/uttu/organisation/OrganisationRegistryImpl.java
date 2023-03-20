@@ -21,8 +21,7 @@ import no.entur.uttu.security.TokenService;
 import no.entur.uttu.util.Preconditions;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.rutebanken.netex.model.GeneralOrganisation;
-import org.rutebanken.netex.model.MultilingualString;
+import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,57 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
 
     @Override
     public List<GeneralOrganisation> getOrganisations() {
-        return null;
+        //TODO a continuer ici
+        ResponseEntity<List> rateResponse = restTemplate.exchange(
+                organisationRegistryUrl,
+                HttpMethod.GET,
+                getEntityWithAuthenticationToken(),
+                List.class);
+
+        return buildOrganisationListFromResponse(rateResponse);
+    }
+
+    private List<GeneralOrganisation> buildOrganisationListFromResponse(ResponseEntity<List> response){
+        List<GeneralOrganisation> organisationList = new ArrayList<>();
+
+        if (!response.hasBody()){
+            return organisationList;
+        }
+
+        List<LinkedHashMap<String,String>> responseList = response.getBody();
+
+        for (LinkedHashMap linkedHashMap : responseList) {
+
+            GeneralOrganisation newOrg = new GeneralOrganisation();
+
+            if (linkedHashMap.containsKey("id")){
+                newOrg.setId((String) linkedHashMap.get("id"));
+            }
+
+            if (linkedHashMap.containsKey("name")){
+                MultilingualString name = new MultilingualString();
+                String rawName = (String) linkedHashMap.get("name");
+                if (rawName != null && rawName.startsWith("mobiiti_")){
+                    continue;
+                }
+
+                name.setValue((String) linkedHashMap.get("name"));
+                newOrg.setName(name);
+            }
+
+            if (linkedHashMap.containsKey("privateCode")){
+                PrivateCodeStructure privateCodeStruct = new PrivateCodeStructure();
+                privateCodeStruct.setValue((String)linkedHashMap.get("privateCode"));
+                newOrg.setPrivateCode(privateCodeStruct);
+            }
+
+            if (linkedHashMap.containsKey("organisationType")){
+                String loweredOrgType = ((String) linkedHashMap.get("organisationType")).toLowerCase();
+                newOrg.withOrganisationType(OrganisationTypeEnumeration.fromValue(loweredOrgType));
+            }
+            organisationList.add(newOrg);
+        }
+        return organisationList;
     }
 
     public Optional<GeneralOrganisation> getOrganisation(String organisationId) {
@@ -77,7 +126,11 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
                             getEntityWithAuthenticationToken(),
                             Organisation.class);
             Organisation organisation = rateResponse.getBody();
-            if (organisation.types == null) {
+            if (organisation.types == null && !StringUtils.isEmpty(organisation.organisationType)) {
+                Set<String> types = new HashSet<>();
+                types.add(organisation.organisationType);
+                organisation.types = types;
+            }else{
                 Set<String> types = new HashSet<>();
                 types.add(OPERATOR_TYPE);
                 organisation.types = types;
@@ -88,6 +141,8 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
                     organisation.references = references;
                 }
             }
+
+
             return Optional.of(convertToGeneralOrganisation(organisation));
         } catch (HttpClientErrorException ex) {
             logger.warn("Exception while trying to fetch operator: " + organisationId + " : " + ex.getMessage(), ex);
@@ -102,6 +157,9 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
         name.setValue(org.name);
         generalOrg.setName(name);
 
+        for (String type : org.types) {
+            generalOrg.getOrganisationType().add(OrganisationTypeEnumeration.fromValue(type.toLowerCase()));
+        }
         return generalOrg;
 
     }

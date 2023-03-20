@@ -23,6 +23,7 @@ import no.entur.uttu.model.BookingArrangement;
 import no.entur.uttu.model.FixedLine;
 import no.entur.uttu.model.FlexibleLine;
 import no.entur.uttu.model.Line;
+import no.entur.uttu.util.DateUtils;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.BookingAccessEnumeration;
 import org.rutebanken.netex.model.BookingMethodEnumeration;
@@ -49,6 +50,7 @@ public class LineProducer {
 
     @Autowired
     private OrganisationProducer organisationProducer;
+
 
 
     public org.rutebanken.netex.model.Line_VersionStructure produce(Line line, List<NoticeAssignment> noticeAssignments, NetexExportContext context) {
@@ -79,12 +81,13 @@ public class LineProducer {
 
     protected void mapBookingArrangements(BookingArrangement local, org.rutebanken.netex.model.FlexibleLine netex) {
         if (local != null) {
+
             netex.withBookingAccess(objectFactory.mapEnum(local.getBookingAccess(), BookingAccessEnumeration.class))
                     .withBookingMethods(objectFactory.mapEnums(local.getBookingMethods(), BookingMethodEnumeration.class))
                     .withBookWhen(objectFactory.mapEnum(local.getBookWhen(), PurchaseWhenEnumeration.class))
                     .withBuyWhen(objectFactory.mapEnums(local.getBuyWhen(), PurchaseMomentEnumeration.class))
                     .withLatestBookingTime(local.getLatestBookingTime())
-                    .withMinimumBookingPeriod(local.getMinimumBookingPeriod())
+                    .withMinimumBookingPeriod(DateUtils.getDuration(local).orElse(null))
                     .withBookingNote(objectFactory.createMultilingualString(local.getBookingNote()))
                     .withBookingContact(contactStructureProducer.mapContactStructure(local.getBookingContact()));
         }

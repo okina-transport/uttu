@@ -16,9 +16,15 @@
 package no.entur.uttu.util;
 
 
+import no.entur.uttu.model.BookingArrangement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,9 +34,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
+import java.util.Optional;
 
 @Component(value = "dateUtils")
 public class DateUtils {
+
+
+
 
     private final static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
                                                                .optionalStart().appendPattern("XXXXX").optionalEnd()
@@ -57,6 +67,19 @@ public class DateUtils {
 
     public LocalTime toExportLocalTime(ZonedDateTime zonedDateTime) {
         return zonedDateTime.withZoneSameInstant(exportZoneId).toLocalTime();
+    }
+
+    public static Optional<Duration> getDuration(BookingArrangement bookingArrangement){
+        if (bookingArrangement.getMinimumBookingPeriod() == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(DatatypeFactory.newInstance().newDuration(bookingArrangement.getMinimumBookingPeriod().toString()));
+        } catch (DatatypeConfigurationException e) {
+            Logger logger = LoggerFactory.getLogger("DateUtils");
+            logger.error("Unable to convert duration:" + bookingArrangement.getMinimumBookingPeriod(), e);
+            return Optional.empty();
+        }
     }
 
 }

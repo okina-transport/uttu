@@ -25,6 +25,7 @@ import no.entur.uttu.model.ServiceJourney;
 import no.entur.uttu.model.StopPointInJourneyPattern;
 import no.entur.uttu.model.TimetabledPassingTime;
 import no.entur.uttu.model.job.SeverityEnumeration;
+import no.entur.uttu.util.DateUtils;
 import org.rutebanken.netex.model.BookingAccessEnumeration;
 import org.rutebanken.netex.model.BookingMethodEnumeration;
 import org.rutebanken.netex.model.DayTypeRefStructure;
@@ -147,7 +148,7 @@ public class ServiceJourneyProducer {
                 .withBookWhen(objectFactory.mapEnum(local.getBookWhen(), PurchaseWhenEnumeration.class))
                 .withBuyWhen(objectFactory.mapEnums(local.getBuyWhen(), PurchaseMomentEnumeration.class))
                 .withLatestBookingTime(local.getLatestBookingTime())
-                .withMinimumBookingPeriod(local.getMinimumBookingPeriod())
+                .withMinimumBookingPeriod(DateUtils.getDuration(local).orElse(null))
                 .withBookingNote(objectFactory.createMultilingualString(local.getBookingNote()))
                 .withBookingContact(contactStructureProducer.mapContactStructure(local.getBookingContact()));
 
