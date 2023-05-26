@@ -142,15 +142,21 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
         try {
             HashMap<String, String> postDataParams = new HashMap<>();
-            postDataParams.put("area", polygon.toString());
 
             URL url = new URL(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams));
             HttpURLConnection connection = null;
             connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
+            connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-type", "application/json");
             connection.setDoOutput(true);
             connection.setRequestProperty("Authorization", "Bearer " + tokenService.getToken());
+            OutputStream outputStream = connection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+            writer.write(polygon.toString());
+            writer.close();
+
+
+            //connection.connect();
             InputStream inputStream = connection.getInputStream();
             String resultString = new BufferedReader( new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines() .collect(Collectors.joining("\n"));
 
