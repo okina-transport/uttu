@@ -19,6 +19,7 @@ import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.job.SeverityEnumeration;
 import no.entur.uttu.organisation.OrganisationRegistry;
+import no.entur.uttu.repository.CompanyRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.rutebanken.netex.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 public class OrganisationProducer {
 
     @Autowired
-    private OrganisationRegistry organisationRegistry;
+    private CompanyRegistry companyRegistry;
 
     public List<Authority> produceAuthorities(NetexExportContext context) {
         return context.networks.stream().map(Network::getAuthorityRef).distinct().map(ref -> mapAuthority(ref, context)).collect(Collectors.toList());
@@ -48,7 +49,7 @@ public class OrganisationProducer {
         Authority authority = mapAuthority(authorityRef, context);
         AuthorityRefStructure authorityRefStruct = new AuthorityRefStructure().withRef(authority.getId());
         if (withVersion) {
-            authorityRefStruct.withVersion(authority.getVersion());
+           authorityRefStruct.withVersion(authority.getVersion());
         }
         return authorityRefStruct;
     }
@@ -64,8 +65,8 @@ public class OrganisationProducer {
     }
 
     private Authority mapAuthority(String authorityRef, NetexExportContext context) {
-        Optional<GeneralOrganisation> orgRegAuthority = organisationRegistry.getOrganisation(authorityRef);
-        if (orgRegAuthority.isEmpty() || organisationRegistry.getVerifiedAuthorityRef(authorityRef) == null) {
+        Optional<GeneralOrganisation> orgRegAuthority =  companyRegistry.getAuthority(authorityRef);
+        if (orgRegAuthority.isEmpty()) {
             context.addExportMessage(SeverityEnumeration.ERROR, "Authority [id:{0}] not found", authorityRef);
             return new Authority();
         }
@@ -90,8 +91,10 @@ public class OrganisationProducer {
     }
 
     private Operator mapOperator(String operatorRef, NetexExportContext context) {
-        Optional<GeneralOrganisation> orgRegOperator = organisationRegistry.getOrganisation(operatorRef);
-        if (orgRegOperator.isEmpty() || organisationRegistry.getVerifiedOperatorRef(operatorRef) == null) {
+
+        Optional<GeneralOrganisation> orgRegOperator = companyRegistry.getOperator(operatorRef);
+
+        if (orgRegOperator.isEmpty() ) {
             context.addExportMessage(SeverityEnumeration.ERROR, "Operator [id:{0}] not found", operatorRef);
             return new Operator();
         }

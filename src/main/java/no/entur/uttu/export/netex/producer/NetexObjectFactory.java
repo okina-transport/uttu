@@ -49,13 +49,13 @@ import static no.entur.uttu.export.netex.producer.NetexIdProducer.getEntityName;
 public class NetexObjectFactory {
 
     public static final String VERSION_ONE = "1";
-    public static final String DEFAULT_LANGUAGE = "no";
+    public static final String DEFAULT_LANGUAGE = "fr";
     public static final String NSR_XMLNS = "NSR";
     public static final String NSR_XMLNSURL = "http://www.rutebanken.org/ns/nsr";
 
     private static final QName _AuthorityRef_QNAME = new QName("http://www.netex.org.uk/netex", "AuthorityRef");
 
-    @Value("${netex.export.version:1.11:NO-NeTEx-networktimetable:1.3}")
+    @Value("${netex.export.version:1.1:FR-NETEX_CALENDRIER-2.2}")
     private String netexVersion;
 
 
@@ -143,11 +143,11 @@ public class NetexObjectFactory {
 
         no.entur.uttu.model.Codespace localProviderCodespace = context.provider.getCodespace();
         Codespace providerCodespace = createCodespace(localProviderCodespace.getXmlns(), localProviderCodespace.getXmlnsUrl());
-        Codespace nsrCodespace = createCodespace(NSR_XMLNS, NSR_XMLNSURL);
+
 
         Codespaces_RelStructure codespaces = objectFactory.createCodespaces_RelStructure()
-                                                     .withCodespaceRefOrCodespace(providerCodespace)
-                                                     .withCodespaceRefOrCodespace(nsrCodespace);
+                                                     .withCodespaceRefOrCodespace(providerCodespace);
+
 
         LocaleStructure localeStructure = objectFactory.createLocaleStructure()
                                                   .withTimeZone(exportTimeZone.getDefaultTimeZoneId().getId())
