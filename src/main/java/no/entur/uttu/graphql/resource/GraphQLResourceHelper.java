@@ -122,6 +122,7 @@ public class GraphQLResourceHelper {
                             .collect(Collectors.toList());
 
                     content.put("errors", errors);
+                    res = Response.status(Response.Status.BAD_REQUEST);
                 }
                 if (executionResult.getData() != null) {
                     content.put("data", executionResult.getData());
