@@ -26,7 +26,7 @@
 
     <groupId>no.rutebanken</groupId>
     <artifactId>uttu</artifactId>
-    <version>1.0.3-mobi-iti-SNAPSHOT</version>
+    <version>1.0.2-mobi-iti</version>
     <packaging>jar</packaging>
 
     <name>uttu</name>
