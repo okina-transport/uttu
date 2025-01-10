@@ -371,6 +371,9 @@
                         <id>test-compile</id>
                         <phase>test-compile</phase>
                         <configuration>
+                            <source>11</source> <!-- Java source compatibility -->
+                            <target>11</target> <!-- Java target compatibility -->
+
                             <tasks>
                                 <mkdir dir="${basedir}/src/test/groovy"/>
                                 <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">
@@ -381,6 +384,9 @@
                                     <classpath refid="maven.test.classpath"/>
                                 </groovyc>
                             </tasks>
+
+
+
                         </configuration>
                         <goals>
                             <goal>run</goal>
