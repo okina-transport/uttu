@@ -17,6 +17,7 @@ package no.entur.uttu.organisation;
 
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
+import no.entur.uttu.repository.CompanyRegistry;
 import no.entur.uttu.security.TokenService;
 import no.entur.uttu.util.Preconditions;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -48,6 +49,9 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
     private String organisationRegistryUrl;
 
     private TokenService tokenService;
+
+    @Autowired
+    CompanyRegistry companyRegistry;
 
     @Autowired
     public OrganisationRegistryImpl(@Value("${organisation.registry.url:https://tiamat-rmr.nouvelle-aquitaine.pro/api/organisations/1.0/}") String organisationRegistryUrl, TokenService tokenService) {
@@ -164,33 +168,7 @@ public class OrganisationRegistryImpl implements OrganisationRegistry {
 
     }
 
-    /**
-     * Return provided operatorRef if valid, else throw exception.
-     */
-    public String getVerifiedOperatorRef(String operatorRef) {
-        if (StringUtils.isEmpty(operatorRef)) {
-            return null;
-        }
-        Optional<GeneralOrganisation> organisation = getOrganisation(operatorRef);
-        if (organisation.isEmpty()){
-            throw new IllegalArgumentException("Operator not verified : " + operatorRef);
-        }
-        return operatorRef;
-    }
 
-    /**
-     * Return provided authorityRef if valid, else throw exception.
-     */
-    public String getVerifiedAuthorityRef(String authorityRef) {
-        if (StringUtils.isEmpty(authorityRef)) {
-            return null;
-        }
-        Optional<GeneralOrganisation> organisation = getOrganisation(authorityRef);
-        if (organisation.isEmpty()){
-            throw new IllegalArgumentException("Authority not verified : " + authorityRef);
-        }
-        return authorityRef;
-    }
 
     private HttpEntity<String> getEntityWithAuthenticationToken() {
         HttpHeaders headers = new HttpHeaders();

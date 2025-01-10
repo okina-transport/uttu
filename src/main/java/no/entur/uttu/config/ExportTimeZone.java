@@ -38,12 +38,12 @@ public class ExportTimeZone {
     private ZoneId defaultTimeZone;
 
     @Autowired
-    public ExportTimeZone(@Value("${export.time.zone.default:Europe/Oslo}") String defaultTimeZoneName) {
+    public ExportTimeZone(@Value("${export.time.zone.default:Europe/Paris}") String defaultTimeZoneName) {
         this.defaultTimeZoneName = defaultTimeZoneName;
     }
 
     public ExportTimeZone() {
-        this.defaultTimeZoneName = "Europe/Oslo";
+        this.defaultTimeZoneName = "Europe/Paris";
     }
 
 

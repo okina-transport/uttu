@@ -66,6 +66,7 @@ import no.entur.uttu.repository.NetworkRepository;
 import org.locationtech.jts.geom.Geometry;
 import org.rutebanken.netex.model.GeneralOrganisation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -202,9 +203,6 @@ public class LinesGraphQLSchema {
     private DataFetcher<FixedLine> fixedLineUpdater;
 
     @Autowired
-    private DataFetcher<Network> networkUpdater;
-
-    @Autowired
     private DataFetcher<DayType> dayTypeUpdater;
 
     @Autowired
@@ -241,7 +239,12 @@ public class LinesGraphQLSchema {
     private DayTypeRepository dayTypeRepository;
 
     @Autowired
+    @Qualifier("organisationsFetcher")
     private DataFetcher<List<GeneralOrganisation>> organisationsFetcher;
+
+    @Autowired
+    @Qualifier("companiesFetcher")
+    private DataFetcher<List<GeneralOrganisation>> companiesFetcher;
 
     @Autowired
     private DataFetcher<TimetabledPassingTime.StopPlace> quayRefSearchFetcher;
@@ -664,13 +667,13 @@ public class LinesGraphQLSchema {
                         .type(new GraphQLList(networkObjectType))
                         .name("networks")
                         .description("List networks")
-                        .dataFetcher(env -> networkRepository.findAll()))
+                        .dataFetcher(env -> networkRepository.syncAndFindAll()))
                 .field(newFieldDefinition()
                         .type(networkObjectType)
                         .name("network")
                         .description("Get network by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> networkRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> networkRepository.getById(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(exportObjectType))
                         .name("exports")
@@ -709,6 +712,11 @@ public class LinesGraphQLSchema {
                         .name("organisations")
                         .description("List all organisations")
                         .dataFetcher(organisationsFetcher))
+                .field(newFieldDefinition()
+                        .type(new GraphQLList(organisationObjectType))
+                        .name("companies")
+                        .description("List all authorities/operators")
+                        .dataFetcher(companiesFetcher))
                 .build();
     }
 
@@ -882,20 +890,8 @@ public class LinesGraphQLSchema {
         return newObject()
                 .name("Mutations")
                 .description("Create and edit FlexibleLine timetable data")
-                .field(newFieldDefinition()
-                        .type(new GraphQLNonNull(networkObjectType))
-                        .name("mutateNetwork")
-                        .description("Create new or update existing network")
-                        .argument(GraphQLArgument.newArgument()
-                                .name(FIELD_INPUT)
-                                .type(networkInputType))
-                        .dataFetcher(networkUpdater))
-                .field(newFieldDefinition()
-                        .type(new GraphQLNonNull(networkObjectType))
-                        .name("deleteNetwork")
-                        .description("Delete an existing network")
-                        .argument(idArgument)
-                        .dataFetcher(networkUpdater))
+
+
                 .field(newFieldDefinition()
                         .type(new GraphQLNonNull(lineObjectType))
                         .name("mutateLine")

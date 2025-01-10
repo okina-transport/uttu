@@ -16,7 +16,16 @@
 package no.entur.uttu.repository;
 
 import no.entur.uttu.model.Network;
+import java.util.List;
+
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 
-public interface NetworkRepository extends ProviderEntityRepository<Network> {
+public interface NetworkRepository {
+
+    List<Network> syncAndFindAll();
+
+    void deleteAll();
+
+    Network getById(String id);
+
 }
