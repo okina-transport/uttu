@@ -9,6 +9,8 @@ VERSION=$(mvn -q \
     --non-recursive \
     exec:exec)
 
+mvn clean install -DskipTests
+
 
 VERSION=`echo ${VERSION} | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"`
 VERSION=$(echo "$VERSION" | sed 's/[[:space:]]*$//')
