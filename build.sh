@@ -11,6 +11,7 @@ VERSION=$(mvn -q \
 
 
 VERSION=`echo ${VERSION} | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"`
+VERSION=$(echo "$VERSION" | sed 's/[[:space:]]*$//')
 IMAGE_NAME=registry.okina.fr/mobiiti/uttu:"${VERSION}"
 
 echo version:${VERSION}
