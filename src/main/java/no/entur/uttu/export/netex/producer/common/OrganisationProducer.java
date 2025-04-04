@@ -67,7 +67,15 @@ public class OrganisationProducer {
     private Authority mapAuthority(String authorityRef, NetexExportContext context) {
         Optional<GeneralOrganisation> orgRegAuthority =  companyRegistry.getAuthority(authorityRef);
         if (orgRegAuthority.isEmpty()) {
-            context.addExportMessage(SeverityEnumeration.ERROR, "Authority [id:{0}] not found", authorityRef);
+
+            String availableAuthorities = companyRegistry.getCompanies().stream()
+                    .filter(org -> org.getOrganisationType().contains(OrganisationTypeEnumeration.AUTHORITY))
+                    .map(org -> org.getId())
+                    .collect(Collectors.joining(","));
+
+
+
+            context.addExportMessage(SeverityEnumeration.ERROR, "Authority [id:{0}] not found. Available authorities: {1}", authorityRef, availableAuthorities);
             return new Authority();
         }
 
@@ -95,7 +103,14 @@ public class OrganisationProducer {
         Optional<GeneralOrganisation> orgRegOperator = companyRegistry.getOperator(operatorRef);
 
         if (orgRegOperator.isEmpty() ) {
-            context.addExportMessage(SeverityEnumeration.ERROR, "Operator [id:{0}] not found", operatorRef);
+
+            String availableOrgs = companyRegistry.getCompanies().stream()
+                    .filter(org -> org.getOrganisationType().contains(OrganisationTypeEnumeration.OPERATOR))
+                    .map(org -> org.getId())
+                    .collect(Collectors.joining(","));
+
+
+            context.addExportMessage(SeverityEnumeration.ERROR, "Operator [id:{0}] not found. Available operators :{1}", operatorRef,availableOrgs);
             return new Operator();
         }
 
