@@ -18,8 +18,8 @@ package no.entur.uttu.model;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.model.job.ExportMessage;
 import no.entur.uttu.model.job.SeverityEnumeration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
 
@@ -41,14 +41,14 @@ public class ExportTest {
         export.addMessage(errorMsg);
         export.addMessage(warnMsg2);
 
-        Assert.assertEquals(4, export.getMessages().size(), 4);
+        Assertions.assertEquals(4, export.getMessages().size(), 4);
 
         Iterator<ExportMessage> messages = export.getMessages().iterator();
 
-        Assert.assertEquals(errorMsg, messages.next());
-        Assert.assertEquals(warnMsg1, messages.next());
-        Assert.assertEquals(warnMsg2, messages.next());
-        Assert.assertEquals(infoMsg, messages.next());
+        Assertions.assertEquals(errorMsg, messages.next());
+        Assertions.assertEquals(warnMsg1, messages.next());
+        Assertions.assertEquals(warnMsg2, messages.next());
+        Assertions.assertEquals(infoMsg, messages.next());
 
     }
 }

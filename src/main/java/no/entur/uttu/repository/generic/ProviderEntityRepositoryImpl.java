@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 
 public class ProviderEntityRepositoryImpl<T extends ProviderEntity> extends SimpleJpaRepository<T, Long> implements ProviderEntityRepository<T> {

@@ -6,30 +6,38 @@ import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
+import org.jspecify.annotations.Nullable;
 
 public class ProviderCodeScalar {
-    public static final GraphQLScalarType PROVIDER_CODE = new GraphQLScalarType("ProviderCode", "Provider codes must be lower-case strings", new Coercing() {
+
+
+    public static final GraphQLScalarType PROVIDER_CODE =
+            GraphQLScalarType.newScalar()
+                    .name("ProviderCode")
+                    .description("Provider codes must be lower-case strings")
+                    .coercing(new Coercing<String, String>()
+                    {
         @Override
-        public Object serialize(Object dataFetcherResult) throws CoercingSerializeException {
+        public String serialize(Object dataFetcherResult) throws CoercingSerializeException {
             return serializeProviderCode(dataFetcherResult);
         }
 
         @Override
-        public Object parseValue(Object input) throws CoercingParseValueException {
+        public  String parseValue(Object input) throws CoercingParseValueException {
             return parseProviderCodeFromValue(input);
         }
 
         @Override
-        public Object parseLiteral(Object input) throws CoercingParseLiteralException {
+        public  String parseLiteral(Object input) throws CoercingParseLiteralException {
             return parseProviderCodeAsLiteral(input);
         }
-    });
+    }).build();
 
     private static boolean isValidProviderCode(String code) {
         return code.toLowerCase().equals(code);
     }
 
-    private static Object serializeProviderCode(Object dataFetcherResult) {
+    private static String serializeProviderCode(Object dataFetcherResult) {
         String providerCode = String.valueOf(dataFetcherResult);
         if (isValidProviderCode(providerCode)) {
             return providerCode;
@@ -38,7 +46,7 @@ public class ProviderCodeScalar {
         }
     }
 
-    private static Object parseProviderCodeFromValue(Object input) {
+    private static String parseProviderCodeFromValue(Object input) {
         if (input instanceof String) {
             String providerCode = input.toString();
             if (isValidProviderCode(providerCode)) {
@@ -48,7 +56,7 @@ public class ProviderCodeScalar {
         throw new CoercingParseValueException("Unable to parse variable value " + input + " as a provider code");
     }
 
-    private static Object parseProviderCodeAsLiteral(Object input) {
+    private static String parseProviderCodeAsLiteral(Object input) {
         if (input instanceof StringValue) {
             String providerCode = ((StringValue) input).getValue();
             if (isValidProviderCode(providerCode)) {

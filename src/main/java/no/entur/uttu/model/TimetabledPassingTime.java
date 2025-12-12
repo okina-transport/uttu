@@ -16,20 +16,21 @@
 package no.entur.uttu.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 import no.entur.uttu.util.ValidationHelper;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
 import java.util.List;
 
 @Entity
+@SequenceGenerator(
+        name = "timetabled_passing_time_gen",
+        sequenceName = "timetabled_passing_time_seq",
+        allocationSize = 10
+)
 public class TimetabledPassingTime extends ProviderEntity {
 
     @NotNull

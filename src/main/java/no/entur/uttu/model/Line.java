@@ -15,19 +15,9 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -39,6 +29,11 @@ import static no.entur.uttu.model.Constraints.LINE_UNIQUE_NAME;
 @Entity
 @Inheritance(strategy= InheritanceType.JOINED)
 @Table(uniqueConstraints = {@UniqueConstraint(name = LINE_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
+@SequenceGenerator(
+        name = "line_seq_gen",
+        sequenceName = "line_seq",
+        allocationSize = 10
+)
 public abstract class Line extends GroupOfEntities_VersionStructure {
 
     private String publicCode;

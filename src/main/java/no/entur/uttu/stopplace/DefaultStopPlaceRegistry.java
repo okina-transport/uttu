@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.jdo.annotations.Cacheable;
 import java.io.*;
 import java.net.HttpURLConnection;

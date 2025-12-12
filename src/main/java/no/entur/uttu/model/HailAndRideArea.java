@@ -15,12 +15,18 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.SequenceGenerator;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@SequenceGenerator(
+        name = "hail_and_ride_area_seq_gen",
+        sequenceName = "hail_and_ride_area_seq",
+        allocationSize = 10
+)
 public class HailAndRideArea extends IdentifiedEntity {
 
     @NotNull

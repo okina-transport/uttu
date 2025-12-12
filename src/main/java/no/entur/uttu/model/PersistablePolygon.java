@@ -16,19 +16,22 @@
 package no.entur.uttu.model;
 
 
+import jakarta.persistence.*;
 import org.locationtech.jts.geom.Polygon;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Entity
+@SequenceGenerator(
+        name = "persistable_polygon_gen",
+        sequenceName = "persistable_polygon_seq",
+        allocationSize = 10
+)
 public class PersistablePolygon implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     protected Long id;
 
     @NotNull

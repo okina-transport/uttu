@@ -53,7 +53,13 @@ public class DateTimeScalar {
     }
 
     private GraphQLScalarType createGraphQLDateScalar() {
-        return new GraphQLScalarType("DateTime", DESCRIPTION, new Coercing() {
+
+        return GraphQLScalarType.newScalar()
+                .name("DateTime")
+                .description(DESCRIPTION)
+                .coercing(new Coercing<Instant, String>()
+                {
+
             @Override
             public String serialize(Object input) {
                 if (input instanceof Instant) {
@@ -67,14 +73,8 @@ public class DateTimeScalar {
                 return Instant.from(FORMATTER.parse((CharSequence) input));
             }
 
-            @Override
-            public Object parseLiteral(Object input) {
-                if (input instanceof StringValue) {
-                    return parseValue(((StringValue) input).getValue());
-                }
-                return null;
-            }
-        });
+
+        }).build();
     }
 
 }

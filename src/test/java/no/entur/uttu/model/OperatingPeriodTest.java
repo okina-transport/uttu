@@ -15,8 +15,8 @@
 
 package no.entur.uttu.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
@@ -48,32 +48,32 @@ public class OperatingPeriodTest {
 
     @Test
     public void isValid_whenPeriodEndingBeforeFromDate_thenReturnFalse() {
-        Assert.assertFalse(period(YESTERDAY, TODAY).isValid(TODAY.plusDays(1), TODAY.plusDays(2)));
+        Assertions.assertFalse(period(YESTERDAY, TODAY).isValid(TODAY.plusDays(1), TODAY.plusDays(2)));
     }
 
     @Test
     public void isValid_whenPeriodStartAfterToDate_thenReturnFalse() {
-        Assert.assertFalse(period(YESTERDAY, TODAY).isValid(YESTERDAY.minusDays(2), YESTERDAY.minusDays(1)));
+        Assertions.assertFalse(period(YESTERDAY, TODAY).isValid(YESTERDAY.minusDays(2), YESTERDAY.minusDays(1)));
     }
 
     @Test
     public void isValid_whenPeriodIncludesFromAndToDate_thenReturnTrue() {
-        Assert.assertTrue(period(YESTERDAY, TODAY.plusDays(10)).isValid(TODAY.plusDays(2), TODAY.plusDays(3)));
+        Assertions.assertTrue(period(YESTERDAY, TODAY.plusDays(10)).isValid(TODAY.plusDays(2), TODAY.plusDays(3)));
     }
 
     @Test
     public void isValid_whenPeriodIncludesFromDate_thenReturnTrue() {
-        Assert.assertTrue(period(YESTERDAY, TODAY.plusDays(2)).isValid(TODAY.plusDays(1), TODAY.plusDays(30)));
+        Assertions.assertTrue(period(YESTERDAY, TODAY.plusDays(2)).isValid(TODAY.plusDays(1), TODAY.plusDays(30)));
     }
 
     @Test
     public void isValid_whenPeriodIncludesToDate_thenReturnTrue() {
-        Assert.assertTrue(period(YESTERDAY, TODAY.plusDays(2)).isValid(YESTERDAY.minusDays(10), TODAY));
+        Assertions.assertTrue(period(YESTERDAY, TODAY.plusDays(2)).isValid(YESTERDAY.minusDays(10), TODAY));
     }
 
     @Test
     public void isValid_whenPeriodBetweenFromDateAndToDate_thenReturnTrue() {
-        Assert.assertTrue(period(YESTERDAY, TODAY).isValid(YESTERDAY.minusDays(30), TODAY.plusDays(30)));
+        Assertions.assertTrue(period(YESTERDAY, TODAY).isValid(YESTERDAY.minusDays(30), TODAY.plusDays(30)));
     }
 
     private OperatingPeriod period(LocalDate from, LocalDate to) {

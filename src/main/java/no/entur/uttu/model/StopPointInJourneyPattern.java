@@ -15,19 +15,19 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
+@SequenceGenerator(
+        name = "stop_point_in_journey_pattern_gen",
+        sequenceName = "stop_point_in_journey_pattern_seq",
+        allocationSize = 10
+)
 public class StopPointInJourneyPattern extends ProviderEntity {
 
     @ManyToOne

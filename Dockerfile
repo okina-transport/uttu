@@ -1,7 +1,4 @@
-FROM adoptopenjdk/openjdk11:jre-11.0.11_9-alpine
-RUN apk update && apk upgrade
-WORKDIR /deployments
-COPY target/uttu-*.jar uttu.jar
-RUN addgroup appuser && adduser --disabled-password appuser --ingroup appuser
-USER appuser
-CMD java $JAVA_OPTIONS -jar uttu.jar
+FROM eclipse-temurin:21.0.5_11-jdk
+ARG JAR_FILE
+COPY ${JAR_FILE} uttu.jar
+ENTRYPOINT ["java","--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED", "--add-opens", "java.base/java.util=ALL-UNNAMED","--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED","--add-opens", "java.base/java.lang=ALL-UNNAMED","--add-opens", "java.base/java.io=ALL-UNNAMED", "--add-opens", "java.base/java.text=ALL-UNNAMED","-jar","/uttu.jar"]

@@ -15,9 +15,9 @@
 
 package no.entur.uttu.graphql
 
-import io.restassured.response.ValidatableResponse
+
 import no.entur.uttu.config.MockedRoleAssignmentExtractor
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.rutebanken.helper.organisation.RoleAssignment
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -57,7 +57,7 @@ class ProviderGraphQLIntegrationTest extends AbstractGraphQLResourceIntegrationT
         )
 
         executeGraphqQLQueryOnly(getProvidersQuery)
-                .body("data.providers", iterableWithSize(1))
+                .body("data.providers", iterableWithSize(2))
                 .body("data.providers[0].code", equalTo("tst"))
 
         mockedRoleAssignmentExtractor.reset()
@@ -70,8 +70,8 @@ class ProviderGraphQLIntegrationTest extends AbstractGraphQLResourceIntegrationT
         )
 
         executeGraphqQLQueryOnly(getProvidersQuery)
-                .body("data.providers", iterableWithSize(1))
-                .body("data.providers[0].code", equalTo("foo"))
+                .body("data.providers", iterableWithSize(2))
+                .body("data.providers[1].code", equalTo("foo"))
 
         mockedRoleAssignmentExtractor.reset()
     }

@@ -15,8 +15,8 @@
 
 package no.entur.uttu.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -34,10 +34,10 @@ public class ServiceJourneyTest {
         List<TimetabledPassingTime> passingTimes = Arrays.asList(new TimetabledPassingTime(), new TimetabledPassingTime(), new TimetabledPassingTime());
         serviceJourney.setPassingTimes(passingTimes);
 
-        Assert.assertEquals(3, serviceJourney.getPassingTimes().size());
-        Assert.assertEquals(1, serviceJourney.getPassingTimes().get(0).getOrder());
-        Assert.assertEquals(2, serviceJourney.getPassingTimes().get(1).getOrder());
-        Assert.assertEquals(3, serviceJourney.getPassingTimes().get(2).getOrder());
+        Assertions.assertEquals(3, serviceJourney.getPassingTimes().size());
+        Assertions.assertEquals(1, serviceJourney.getPassingTimes().get(0).getOrder());
+        Assertions.assertEquals(2, serviceJourney.getPassingTimes().get(1).getOrder());
+        Assertions.assertEquals(3, serviceJourney.getPassingTimes().get(2).getOrder());
     }
 
     @Test

@@ -16,7 +16,7 @@
 package no.entur.uttu.model;
 
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;

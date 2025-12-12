@@ -15,10 +15,17 @@
 
 package no.entur.uttu.model;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.SequenceGenerator;
+
 import javax.validation.constraints.Size;
 
 @Entity
+@SequenceGenerator(
+        name = "contact_seq_gen",
+        sequenceName = "contact_seq",
+        allocationSize = 10
+)
 public class Contact extends IdentifiedEntity {
     @Size(max = 256)
     private String email;

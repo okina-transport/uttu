@@ -19,6 +19,7 @@ import graphql.language.ArrayValue;
 import graphql.language.FloatValue;
 import graphql.schema.Coercing;
 import graphql.schema.GraphQLScalarType;
+import org.jspecify.annotations.Nullable;
 import org.locationtech.jts.geom.Coordinate;
 
 import java.util.ArrayList;
@@ -30,7 +31,12 @@ public class GeoJSONCoordinatesScalar {
         return GraphQLGeoJSONCoordinates;
     }
 
-    private static GraphQLScalarType GraphQLGeoJSONCoordinates = new GraphQLScalarType("Coordinates", null, new Coercing() {
+    private static GraphQLScalarType GraphQLGeoJSONCoordinates =
+            GraphQLScalarType.newScalar()
+                    .name("Coordinates")
+                    .description("GeoJSON coordinates as [[x,y], [x,y], ...]; runtime type: org.locationtech.jts.geom.Coordinate[]")
+                    .coercing(new Coercing<Coordinate[], List<List<Double>>>()
+                    {
         @Override
         public List<List<Double>> serialize(Object input) {
             if (input instanceof Coordinate[]) {
@@ -62,7 +68,7 @@ public class GeoJSONCoordinatesScalar {
         }
 
         @Override
-        public Object parseLiteral(Object input) {
+        public Coordinate[] parseLiteral(Object input) {
             if (input instanceof ArrayValue) {
                 ArrayList<ArrayValue> coordinateList = (ArrayList) ((ArrayValue) input).getValues();
                 Coordinate[] coordinates = new Coordinate[coordinateList.size()];
@@ -79,5 +85,5 @@ public class GeoJSONCoordinatesScalar {
             }
             return null;
         }
-    });
+    }).build();
 }

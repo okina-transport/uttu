@@ -15,13 +15,19 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.SequenceGenerator;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
+@SequenceGenerator(
+        name = "operating_period_gen",
+        sequenceName = "operating_period_seq",
+        allocationSize = 10
+)
 public class OperatingPeriod extends IdentifiedEntity {
     @NotNull
     private LocalDate fromDate;

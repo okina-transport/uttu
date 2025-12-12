@@ -15,15 +15,21 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.SequenceGenerator;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
 
 
 @Entity
+@SequenceGenerator(
+        name = "day_type_assignment_seq_gen",
+        sequenceName = "day_type_assignment_seq",
+        allocationSize = 10
+)
 public class DayTypeAssignment extends IdentifiedEntity {
 
 

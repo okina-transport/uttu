@@ -15,15 +15,17 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import org.locationtech.jts.geom.Polygon;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@SequenceGenerator(
+        name = "flexible_area_seq_gen",
+        sequenceName = "flexible_area_seq",
+        allocationSize = 10
+)
 public class FlexibleArea extends IdentifiedEntity {
 
     /**

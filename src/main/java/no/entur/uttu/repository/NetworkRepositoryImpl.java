@@ -7,8 +7,10 @@ import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.security.TokenService;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+
+
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.rutebanken.netex.model.GeneralOrganisation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +25,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -139,6 +141,11 @@ public class NetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> im
     @Override
     public Network getById(String id) {
         return entityManager.createQuery("from Network where id=:id", Network.class).setParameter("id", id).getResultList().stream().findFirst().orElse(null);
+    }
+
+    @Override
+    public Network findByName(String name) {
+        return entityManager.createQuery("from Network where name=:name", Network.class).setParameter("name", name).getResultList().stream().findFirst().orElse(null);
     }
 
     private HttpEntity<String> getEntityWithAuthenticationToken(String referential) {

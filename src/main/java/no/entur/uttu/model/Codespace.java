@@ -15,9 +15,10 @@
 
 package no.entur.uttu.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.Entity;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import static no.entur.uttu.model.Constraints.CODESPACE_UNIQUE_XMLNS;
@@ -26,6 +27,11 @@ import static no.entur.uttu.model.Constraints.CODESPACE_UNIQUE_XMLNS;
 @Table(
         uniqueConstraints = {
                                     @UniqueConstraint(name = CODESPACE_UNIQUE_XMLNS, columnNames = {"xmlns"})}
+)
+@SequenceGenerator(
+        name = "code_space_seq_gen",
+        sequenceName = "code_space_seq",
+        allocationSize = 10
 )
 public class Codespace extends IdentifiedEntity {
 

@@ -15,8 +15,9 @@
 
 package no.entur.uttu.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,10 +66,10 @@ public class JourneyPatternTest {
         List<StopPointInJourneyPattern> stopPoints = Arrays.asList(new StopPointInJourneyPattern(), new StopPointInJourneyPattern(), new StopPointInJourneyPattern());
         journeyPattern.setPointsInSequence(stopPoints);
 
-        Assert.assertEquals(3, journeyPattern.getPointsInSequence().size());
-        Assert.assertEquals(1, journeyPattern.getPointsInSequence().get(0).getOrder());
-        Assert.assertEquals(2, journeyPattern.getPointsInSequence().get(1).getOrder());
-        Assert.assertEquals(3, journeyPattern.getPointsInSequence().get(2).getOrder());
+        Assertions.assertEquals(3, journeyPattern.getPointsInSequence().size());
+        Assertions.assertEquals(1, journeyPattern.getPointsInSequence().get(0).getOrder());
+        Assertions.assertEquals(2, journeyPattern.getPointsInSequence().get(1).getOrder());
+        Assertions.assertEquals(3, journeyPattern.getPointsInSequence().get(2).getOrder());
     }
 
 

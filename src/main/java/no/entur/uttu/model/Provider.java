@@ -15,16 +15,20 @@
 
 package no.entur.uttu.model;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+
+import jakarta.persistence.*;
+
 import javax.validation.constraints.NotNull;
 
 import static no.entur.uttu.model.Constraints.PROVIDER_UNIQUE_CODE;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = PROVIDER_UNIQUE_CODE, columnNames = "code")})
+@SequenceGenerator(
+        name = "provider_gen",
+        sequenceName = "provider_seq",
+        allocationSize = 10
+)
 public class Provider extends IdentifiedEntity {
     @NotNull
     private String code;

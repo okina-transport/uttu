@@ -6,9 +6,10 @@ import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ProviderCodeScalarTest {
     GraphQLScalarType scalar = ProviderCodeScalar.PROVIDER_CODE;
@@ -28,18 +29,18 @@ public class ProviderCodeScalarTest {
         assertEquals("tst", scalar.getCoercing().parseValue("tst"));
     }
 
-    @Test(expected = CoercingSerializeException.class)
+    @Test()
     public void invalidSerializeThrows() {
-        scalar.getCoercing().serialize("TST");
+        Assertions.assertThrows(CoercingSerializeException.class, () ->  scalar.getCoercing().serialize("TST"));
     }
 
-    @Test(expected = CoercingParseLiteralException.class)
+    @Test()
     public void invalidParseLiteralThrows() {
-        scalar.getCoercing().parseLiteral(new StringValue("TST"));
+        Assertions.assertThrows(CoercingParseLiteralException.class, () ->  scalar.getCoercing().parseLiteral(new StringValue("TST")));
     }
 
-    @Test(expected = CoercingParseValueException.class)
+    @Test()
     public void invalidParseValueThrows() {
-        scalar.getCoercing().parseValue("TST");
+        Assertions.assertThrows(CoercingParseValueException.class, () ->   scalar.getCoercing().parseValue("TST"));
     }
 }

@@ -21,21 +21,43 @@ import io.restassured.http.ContentType
 import io.restassured.response.ValidatableResponse
 import io.restassured.specification.RequestSpecification
 import no.entur.uttu.UttuIntegrationTest
-import org.junit.Before
+import no.entur.uttu.model.Codespace
+import no.entur.uttu.model.Provider
+import no.entur.uttu.repository.CodespaceRepository
+import no.entur.uttu.repository.NetworkRepository
+import no.entur.uttu.model.Network
+import no.entur.uttu.repository.ProviderRepository;
+import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
 
 import java.time.LocalDate
 
 import static io.restassured.RestAssured.given
 
+
 abstract class AbstractGraphQLResourceIntegrationTest extends UttuIntegrationTest {
 
     protected static final LocalDate TODAY=LocalDate.now();
 
-    @Before
-    void configureRestAssured() {
-        RestAssured.baseURI = "http://localhost"
-        RestAssured.port = port
+    @Autowired
+    private NetworkRepository networkRepository;
+
+    @Autowired
+    private ProviderRepository providerRepository;
+
+    @Autowired
+    private CodespaceRepository codeSpaceRepository;
+
+
+
+
+    @BeforeEach
+    void configureRestAssured() { // non static
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = port;
     }
+
+
 
     ValidatableResponse createNetwork(String name) {
         String query = """
@@ -55,6 +77,31 @@ abstract class AbstractGraphQLResourceIntegrationTest extends UttuIntegrationTes
         }"""
 
         executeGraphQL(query, variables)
+    }
+
+    Long createNetworkInRepo(String name) {
+
+        Network existingNetwork = networkRepository.findByName(name);
+        if (existingNetwork != null){
+            return existingNetwork.getId();
+        }
+        Network newNetwork = new Network()
+        newNetwork.setName(name);
+        Provider networkProvider = new Provider();
+        networkProvider.setCode("PROVCODE");
+        Codespace providerCodeSpace = new Codespace();
+        providerCodeSpace.setXmlns("xmlnsProv")
+        providerCodeSpace = codeSpaceRepository.save(providerCodeSpace);
+
+        networkProvider.setCodespace(providerCodeSpace);
+
+        networkProvider = providerRepository.save(networkProvider);
+
+        newNetwork.setProvider(networkProvider);
+        Network savedNetwork = networkRepository.save(newNetwork);
+        return savedNetwork.getPk();
+
+
     }
 
     String getNetworkId(ValidatableResponse response) {

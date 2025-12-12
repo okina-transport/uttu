@@ -38,7 +38,12 @@ public class LocalTimeScalar {
         return LocalTimeScalar;
     }
 
-    private static GraphQLScalarType LocalTimeScalar = new GraphQLScalarType("LocalTime", DESCRIPTION, new Coercing() {
+    private static GraphQLScalarType LocalTimeScalar =
+            GraphQLScalarType.newScalar()
+                    .name("LocalTime")
+                    .description(DESCRIPTION)
+                    .coercing(new Coercing<LocalTime, String>()
+                    {
         @Override
         public String serialize(Object input) {
             if (input instanceof LocalTime) {
@@ -63,6 +68,6 @@ public class LocalTimeScalar {
             }
             return null;
         }
-    });
+    }).build();
 }
 

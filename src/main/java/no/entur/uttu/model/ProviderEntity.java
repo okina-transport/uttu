@@ -19,11 +19,11 @@ import com.google.common.base.Joiner;
 import no.entur.uttu.util.Preconditions;
 import no.entur.uttu.config.Context;
 
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
 import java.text.MessageFormat;
 import java.util.Objects;

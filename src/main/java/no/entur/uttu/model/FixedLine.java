@@ -18,7 +18,7 @@ package no.entur.uttu.model;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 import static no.entur.uttu.error.codes.ErrorCodeEnumeration.FLEXIBLE_STOP_PLACE_NOT_ALLOWED;
 

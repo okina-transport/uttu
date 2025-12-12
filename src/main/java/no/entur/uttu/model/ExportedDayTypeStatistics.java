@@ -1,17 +1,20 @@
 package no.entur.uttu.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.*;
+
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Entity
+@SequenceGenerator(
+        name = "exported_day_type_statistics_seq_gen",
+        sequenceName = "exported_day_type_statistics_seq",
+        allocationSize = 10
+)
 public class ExportedDayTypeStatistics {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     protected Long id;
 
     @ManyToOne

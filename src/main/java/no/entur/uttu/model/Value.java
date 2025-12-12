@@ -19,7 +19,7 @@ import com.google.common.base.MoreObjects;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,10 +28,15 @@ import java.util.Set;
 
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Entity
+@SequenceGenerator(
+        name = "value_gen",
+        sequenceName = "value_seq",
+        allocationSize = 10
+)
 public class Value implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
 
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

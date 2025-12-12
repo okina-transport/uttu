@@ -16,15 +16,7 @@
 package no.entur.uttu.graphql;
 
 import graphql.Scalars;
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLNonNull;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 import no.entur.uttu.config.Context;
 import no.entur.uttu.export.linestatistics.ExportedLineStatisticsService;
 import no.entur.uttu.graphql.fetchers.DayTypeServiceJourneyCountFetcher;
@@ -70,7 +62,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -83,8 +75,9 @@ import java.util.stream.Collectors;
 import static graphql.Scalars.GraphQLBoolean;
 import static graphql.Scalars.GraphQLID;
 import static graphql.Scalars.GraphQLInt;
-import static graphql.Scalars.GraphQLLong;
+
 import static graphql.Scalars.GraphQLString;
+import static graphql.scalars.ExtendedScalars.GraphQLLong;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
@@ -300,6 +293,8 @@ public class LinesGraphQLSchema {
     private GraphQLArgument idsArgument;
     private GraphQLArgument providerArgument;
     private GraphQLSchema graphQLSchema;
+    private GraphQLCodeRegistry codeRegistry;
+    private GraphQLObjectType identifiedEntityObjectType;
 
     @PostConstruct
     public void init() {
@@ -310,6 +305,8 @@ public class LinesGraphQLSchema {
 
         graphQLSchema = GraphQLSchema.newSchema()
                 .query(createQueryObject())
+                .additionalType(identifiedEntityObjectType)
+                .codeRegistry(codeRegistry)
                 .mutation(createMutationObject())
                 .build();
     }
@@ -322,7 +319,7 @@ public class LinesGraphQLSchema {
         GraphQLFieldDefinition idFieldDefinition = newFieldDefinition()
                 .name(FIELD_ID)
                 .type(new GraphQLNonNull(GraphQLID))
-                .dataFetcher(env -> ((ProviderEntity) env.getSource()).getNetexId())
+            //    .dataFetcher(env -> ((ProviderEntity) env.getSource()).getNetexId())
                 .build();
 
         GraphQLFieldDefinition versionField = newFieldDefinition()
@@ -373,7 +370,7 @@ public class LinesGraphQLSchema {
                 .field(newFieldDefinition().name("keyValue").type(new GraphQLList(keyValueObjectType)))
                 .build();
 
-        GraphQLObjectType identifiedEntityObjectType = newObject().name("IdentifiedEntity")
+        identifiedEntityObjectType = newObject().name("IdentifiedEntity")
                 .field(idFieldDefinition)
                 .field(versionField)
                 .field(newFieldDefinition().name(FIELD_CREATED_BY).type(new GraphQLNonNull(GraphQLString)))
@@ -381,6 +378,51 @@ public class LinesGraphQLSchema {
                 .field(newFieldDefinition().name(FIELD_CHANGED_BY).type(new GraphQLNonNull(GraphQLString)))
                 .field(newFieldDefinition().name(FIELD_CHANGED).type(new GraphQLNonNull(dateTimeScalar.getDateTimeScalar())))
                 .build();
+
+
+        GraphQLCodeRegistry.Builder cr = GraphQLCodeRegistry.newCodeRegistry()
+                .dataFetcher(
+                        FieldCoordinates.coordinates("FlexibleStopPlace", FIELD_ID),
+                        (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+                );
+
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("FlexibleLine", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("Network", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("JourneyPattern", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("ServiceJourney", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("DayType", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+        cr.dataFetcher(
+                FieldCoordinates.coordinates("Export", FIELD_ID),
+                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        );
+
+
+
+
+        codeRegistry = cr.build();
+
+
 
         GraphQLObjectType groupOfEntitiesObjectType = newObject(identifiedEntityObjectType).name("GroupOfEntities")
                 .field(newFieldDefinition().name(FIELD_NAME).type(GraphQLString))
@@ -429,7 +471,15 @@ public class LinesGraphQLSchema {
                 .field(newFieldDefinition().name(FIELD_END_QUAY_REF).type(new GraphQLNonNull(GraphQLString)))
                 .build();
 
+
+        GraphQLInterfaceType identifiedEntityInterface = GraphQLInterfaceType.newInterface()
+                .name("IdentifiedEntity")
+                .field(idFieldDefinition)
+                .build();
+
+
         flexibleStopPlaceObjectType = newObject(groupOfEntitiesObjectType).name("FlexibleStopPlace")
+              //  .withInterface(identifiedEntityInterface)
                 .field(newFieldDefinition().name(FIELD_TRANSPORT_MODE).type(vehicleModeEnum))
                 .field(newFieldDefinition().name(FIELD_FLEXIBLE_AREA).type(flexibleAreaObjectType))
                 .field(newFieldDefinition().name(FIELD_HAIL_AND_RIDE_AREA).type(hailAndRideAreaType))
@@ -656,7 +706,11 @@ public class LinesGraphQLSchema {
                         .type(new GraphQLList(flexibleStopPlaceObjectType))
                         .name("flexibleStopPlaces")
                         .description("List flexibleStopPlaces")
-                        .dataFetcher(env -> flexibleStopPlaceRepository.findAll()))
+                        .dataFetcher(env -> {
+                                    List<FlexibleStopPlace> result = flexibleStopPlaceRepository.findAll();
+                            return result;
+                                }
+                                ))
                 .field(newFieldDefinition()
                         .type(flexibleStopPlaceObjectType)
                         .name("flexibleStopPlace")

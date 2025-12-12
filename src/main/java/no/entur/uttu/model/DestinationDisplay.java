@@ -15,10 +15,17 @@
 
 package no.entur.uttu.model;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.SequenceGenerator;
+
 import javax.validation.constraints.NotNull;
 
 @Entity
+@SequenceGenerator(
+        name = "destination_display_seq_gen",
+        sequenceName = "destination_display_seq",
+        allocationSize = 10
+)
 public class DestinationDisplay extends ProviderEntity {
 
     @NotNull

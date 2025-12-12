@@ -15,7 +15,7 @@
 
 package no.entur.uttu.graphql
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import static org.hamcrest.Matchers.*
 
@@ -44,7 +44,7 @@ class FlexibleLineGraphQLIntegrationTest extends AbstractFlexibleLinesGraphQLInt
     void createFlexibleLineWithExistingName() {
         String name = "foobar"
         String operatorRef = "22"
-        String networkId = getNetworkId(createNetwork(name))
+        Long networkId = createNetworkInRepo(name);
         String flexAreaStopPlaceId = getFlexibleStopPlaceId(createFlexibleStopPlaceWithFlexibleArea(name + "FlexArea"))
         String hailAndRideStopPlaceId = getFlexibleStopPlaceId(createFlexibleStopPlaceWithHailAndRideArea(name + "HailAndRide"))
         createFlexibleLine(name, operatorRef, networkId, flexAreaStopPlaceId, hailAndRideStopPlaceId)

@@ -15,14 +15,10 @@
 
 package no.entur.uttu.model.job;
 
+import jakarta.persistence.*;
 import no.entur.uttu.model.ExportedLineStatistics;
 import no.entur.uttu.model.ProviderEntity;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +27,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 @Entity
+@SequenceGenerator(
+        name = "export_seq_gen",
+        sequenceName = "export_seq",
+        allocationSize = 10
+)
 public class Export extends ProviderEntity {
 
     private String name;

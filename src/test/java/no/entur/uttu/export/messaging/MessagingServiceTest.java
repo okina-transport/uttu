@@ -20,8 +20,8 @@
 //import com.google.pubsub.v1.PubsubMessage;
 //import no.entur.uttu.UttuIntegrationTest;
 //import org.entur.pubsub.base.EnturGooglePubSubAdmin;
-//import org.junit.Assert;
-//import org.junit.Test;
+//import org.junit.jupiter.api.Assertions;
+//import org.junit.jupiter.api.Test;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +55,9 @@
 //        messagingService.notifyExport(TEST_CODESPACE);
 //
 //        List<PubsubMessage> messages = pubSubTemplate.pullAndAck(queueName, 1, false);
-//        Assert.assertEquals(messages.size(), 1);
+//        Assertions.assertEquals(messages.size(), 1);
 //        String codespace = messages.get(0).getAttributesMap().get(PubSubMessagingService.HEADER_CHOUETTE_REFERENTIAL);
-//        Assert.assertEquals(codespace, "rb_" + TEST_CODESPACE);
+//        Assertions.assertEquals(codespace, "rb_" + TEST_CODESPACE);
 //    }
 //
 //}

@@ -15,15 +15,21 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.SequenceGenerator;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
+@SequenceGenerator(
+        name = "notice_gen",
+        sequenceName = "notice_seq",
+        allocationSize = 10
+)
 public class Notice extends ProviderEntity {
 
     @NotNull

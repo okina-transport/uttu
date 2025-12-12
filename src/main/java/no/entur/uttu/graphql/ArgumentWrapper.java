@@ -18,7 +18,7 @@ package no.entur.uttu.graphql;
 import no.entur.uttu.model.ProviderEntity;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 
-import javax.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

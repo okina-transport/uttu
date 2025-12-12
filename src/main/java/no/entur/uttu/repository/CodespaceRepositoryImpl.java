@@ -19,7 +19,7 @@ import no.entur.uttu.model.Codespace;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 @Repository
 public class CodespaceRepositoryImpl extends SimpleJpaRepository<Codespace, Long> implements CodespaceRepository {

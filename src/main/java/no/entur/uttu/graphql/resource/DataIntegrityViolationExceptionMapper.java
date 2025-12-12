@@ -15,15 +15,16 @@
 
 package no.entur.uttu.graphql.resource;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codederror.ConstraintViolationCodedError;
 import no.entur.uttu.model.Constraints;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+
 import java.util.HashMap;
 import java.util.Map;
 

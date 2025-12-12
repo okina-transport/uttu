@@ -15,17 +15,17 @@
 
 package no.entur.uttu.export.netex;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 public class NetexLineFileProducerTest {
 
     // @Test
     public void testFindAvailabilityPeriod() {
-        Assert.fail();
+        Assertions.fail();
     }
 
     // @Test
     public void testCreateLineFileName() {
-        Assert.fail();
+        Assertions.fail();
     }
 }

@@ -17,17 +17,22 @@ package no.entur.uttu.model;
 
 import no.entur.uttu.model.job.Export;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@SequenceGenerator(
+        name = "exported_line_statistics_seq_gen",
+        sequenceName = "exported_line_statistics_seq",
+        allocationSize = 10
+)
 public class ExportedLineStatistics {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     protected Long id;
 
     @NotNull

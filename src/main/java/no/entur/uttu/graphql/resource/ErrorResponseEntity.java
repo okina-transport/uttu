@@ -17,7 +17,7 @@ package no.entur.uttu.graphql.resource;
 
 import no.entur.uttu.error.codederror.CodedError;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

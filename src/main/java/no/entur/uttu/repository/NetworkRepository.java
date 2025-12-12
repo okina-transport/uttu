@@ -28,4 +28,7 @@ public interface NetworkRepository {
 
     Network getById(String id);
 
+   Network findByName(String name);
+
+
 }

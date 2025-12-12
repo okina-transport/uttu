@@ -35,6 +35,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
                                         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = App.class),
                                         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = OrganisationRegistryImpl.class),
                                         @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = DefaultStopPlaceRegistry.class),
+                                        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = DefaultStopPlaceRegistry.class),
 })
 public class UttuTestApp {
 

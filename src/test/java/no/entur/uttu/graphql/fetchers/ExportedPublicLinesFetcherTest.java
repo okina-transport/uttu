@@ -4,7 +4,7 @@
 //import no.entur.uttu.model.ExportedPublicLine;
 //import no.entur.uttu.model.Provider;
 //import no.entur.uttu.model.job.Export;
-//import org.junit.Test;
+//import org.junit.jupiter.api.Test;
 //
 //import java.time.LocalDate;
 //import java.util.List;

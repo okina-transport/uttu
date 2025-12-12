@@ -1,13 +1,13 @@
 package no.entur.uttu.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.rutebanken.netex.model.StopPlace;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.xmlunit.builder.Input;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 public class NetexHttpMessageConverterTest {
 

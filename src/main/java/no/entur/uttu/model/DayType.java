@@ -15,21 +15,21 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 import org.springframework.util.CollectionUtils;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToMany;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@SequenceGenerator(
+        name = "day_type_gen",
+        sequenceName = "day_type_seq",
+        allocationSize = 10
+)
 public class DayType extends ProviderEntity {
 
     @ElementCollection

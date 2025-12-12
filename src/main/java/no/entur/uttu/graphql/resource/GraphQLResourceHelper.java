@@ -25,6 +25,8 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
 import graphql.GraphQLException;
+import jakarta.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.core.Response;
 import no.entur.uttu.error.CodedGraphQLError;
 import org.rutebanken.helper.organisation.NotAuthenticatedException;
 import org.slf4j.Logger;
@@ -36,8 +38,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;

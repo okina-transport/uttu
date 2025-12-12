@@ -15,23 +15,22 @@
 
 package no.entur.uttu.model.job;
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.text.MessageFormat;
 
 @Entity
+@SequenceGenerator(
+        name = "export_message_seq_gen",
+        sequenceName = "export_message_seq",
+        allocationSize = 10
+)
 public class ExportMessage implements Comparable<ExportMessage> {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
     protected Long pk;
 
     @NotNull

@@ -15,24 +15,22 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = Constraints.FLEXIBLE_STOP_PLACE_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
+@SequenceGenerator(
+        name = "flexible_stop_place_seq_gen",
+        sequenceName = "flexible_stop_place_seq",
+        allocationSize = 10
+)
 public class FlexibleStopPlace extends GroupOfEntities_VersionStructure {
 
     @Enumerated(EnumType.STRING)

@@ -15,8 +15,8 @@
 
 package no.entur.uttu.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
 
@@ -137,7 +137,7 @@ public class TimetabledPassingTimeTest {
     private void assertCheckBeforeOtherFails(TimetabledPassingTime one, TimetabledPassingTime two) {
         try {
             one.checkBeforeOther(two);
-            Assert.fail("Expected when non chronological passing time pair");
+            Assertions.fail("Expected when non chronological passing time pair");
         } catch (IllegalArgumentException iae) {
             //  OK
         }

@@ -2,7 +2,7 @@ package no.entur.uttu.export.netex.producer.line;
 
 import no.entur.uttu.export.model.AvailabilityPeriod;
 import no.entur.uttu.model.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;

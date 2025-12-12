@@ -18,8 +18,9 @@ package no.entur.uttu.repository;
 import no.entur.uttu.config.Context;
 import no.entur.uttu.organisation.Organisation;
 import no.entur.uttu.security.TokenService;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.rutebanken.netex.model.GeneralOrganisation;
 import org.rutebanken.netex.model.MultilingualString;
 import org.rutebanken.netex.model.OrganisationTypeEnumeration;
@@ -87,6 +88,7 @@ public class CompanyRegistryImpl implements CompanyRegistry {
     }
 
     private List<GeneralOrganisation> getCompaniesFromChouette(String providerCode){
+        logger.info("getting companies for provider: " + providerCode);
         ResponseEntity<List> rateResponse = restTemplate.exchange(
                 companyRegistryUrl,
                 HttpMethod.GET,

@@ -17,8 +17,8 @@ package no.entur.uttu.util;
 
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.model.job.Export;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
@@ -29,7 +29,7 @@ public class ExportUtilTest {
         Export export = createExport("t1");
         String fileName= ExportUtil.createBackupDataSetFilename(export);
 
-        Assert.assertTrue(fileName.matches("tst_t1_[0-9]*_null.zip"));
+        Assertions.assertTrue(fileName.matches("tst_t1_[0-9]*_null.zip"));
 
     }
 
@@ -37,7 +37,7 @@ public class ExportUtilTest {
     public void testCreateBackupDataSetFilenameWithOutExportName(){
         Export export = createExport(null);
         String fileName= ExportUtil.createBackupDataSetFilename(export);
-        Assert.assertTrue(fileName.matches("tst_[0-9]*_null.zip"));
+        Assertions.assertTrue(fileName.matches("tst_[0-9]*_null.zip"));
     }
 
     private Export createExport(String name) {

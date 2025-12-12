@@ -32,7 +32,12 @@ public class DurationScalar {
         return DurationScalar;
     }
 
-    private static GraphQLScalarType DurationScalar = new GraphQLScalarType("Duration", DESCRIPTION, new Coercing() {
+    private static GraphQLScalarType DurationScalar =
+            GraphQLScalarType.newScalar()
+                    .name("Duration")
+                    .description(DESCRIPTION)
+                    .coercing(new Coercing<Duration, String>()
+    {
         @Override
         public String serialize(Object input) {
             if (input instanceof Duration) {
@@ -57,5 +62,5 @@ public class DurationScalar {
             }
             return null;
         }
-    });
+    }).build();
 }

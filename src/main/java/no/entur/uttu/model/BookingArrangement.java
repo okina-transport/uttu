@@ -16,19 +16,19 @@
 package no.entur.uttu.model;
 
 
+import jakarta.persistence.*;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToOne;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.List;
 
 @Entity
+@SequenceGenerator(
+        name = "booking_arrangement_seq_gen",
+        sequenceName = "booking_arrangement_seq",
+        allocationSize = 10
+)
 public class BookingArrangement extends IdentifiedEntity {
 
     private LocalTime latestBookingTime;

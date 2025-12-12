@@ -18,9 +18,9 @@ package no.entur.uttu.model;
 import no.entur.uttu.error.ErrorCode;
 import no.entur.uttu.error.codedexception.CodedIllegalArgumentException;
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
-import static org.junit.Assert.assertEquals;
+
 
 public class ModelTestUtil
 {
@@ -29,7 +29,7 @@ public class ModelTestUtil
     public static void assertCheckPersistableFails(IdentifiedEntity entity) {
         try {
             entity.checkPersistable();
-            Assert.fail("Expected exception for non-persistable entity");
+            Assertions.fail("Expected exception for non-persistable entity");
         } catch (IllegalArgumentException iae) {
             //  OK
         }
@@ -38,9 +38,9 @@ public class ModelTestUtil
     public static void assertCheckPersistableFailsWithErrorCode(IdentifiedEntity entity, ErrorCodeEnumeration code) {
         try {
             entity.checkPersistable();
-            Assert.fail("Expected exception for non-persistable entity");
+            Assertions.fail("Expected exception for non-persistable entity");
         } catch (CodedIllegalArgumentException iae) {
-            assertEquals(code.toString(), iae.getCode());
+            Assertions.assertEquals(code.toString(), iae.getCode());
         }
     }
 }

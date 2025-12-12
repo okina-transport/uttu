@@ -15,17 +15,23 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.SequenceGenerator;
 import no.entur.uttu.util.Preconditions;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import static no.entur.uttu.model.Constraints.NETWORK_UNIQUE_NAME;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = NETWORK_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
+@SequenceGenerator(
+        name = "network_gen",
+        sequenceName = "network_seq",
+        allocationSize = 10
+)
 public class Network extends GroupOfEntities_VersionStructure {
 
     /**

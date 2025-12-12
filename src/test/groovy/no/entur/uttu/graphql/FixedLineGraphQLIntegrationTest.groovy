@@ -15,7 +15,7 @@
 
 package no.entur.uttu.graphql
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.startsWith

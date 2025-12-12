@@ -15,8 +15,8 @@
 
 package no.entur.uttu.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -52,7 +52,7 @@ public class DayTypeTest {
         dayType.getDayTypeAssignments().add(date(YESTERDAY));
         dayType.getDayTypeAssignments().add(date(TODAY));
         dayType.getDayTypeAssignments().add(date(YESTERDAY.minusDays(10)));
-        Assert.assertTrue(dayType.isValid(YESTERDAY, YESTERDAY));
+        Assertions.assertTrue(dayType.isValid(YESTERDAY, YESTERDAY));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class DayTypeTest {
         DayType dayType = new DayType();
         dayType.getDayTypeAssignments().add(period(YESTERDAY.minusDays(1), YESTERDAY));
         dayType.getDayTypeAssignments().add(date(YESTERDAY.minusDays(10)));
-        Assert.assertTrue(dayType.isValid(YESTERDAY, YESTERDAY));
+        Assertions.assertTrue(dayType.isValid(YESTERDAY, YESTERDAY));
     }
 
 
@@ -71,7 +71,7 @@ public class DayTypeTest {
         dayType.getDayTypeAssignments().add(period(YESTERDAY.minusDays(2), YESTERDAY.minusDays(1)));
         dayType.getDayTypeAssignments().add(date(TODAY));
         dayType.getDayTypeAssignments().add(date(YESTERDAY.minusDays(10)));
-        Assert.assertFalse(dayType.isValid(YESTERDAY, YESTERDAY));
+        Assertions.assertFalse(dayType.isValid(YESTERDAY, YESTERDAY));
     }
 
 

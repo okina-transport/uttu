@@ -2,7 +2,7 @@ package no.entur.uttu.graphql
 
 import io.restassured.response.ValidatableResponse
 import no.entur.uttu.model.job.ExportStatusEnumeration
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import java.time.LocalDate
 

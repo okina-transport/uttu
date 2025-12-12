@@ -15,14 +15,9 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
 import no.entur.uttu.config.Context;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,7 +26,7 @@ import java.time.LocalDate;
 public abstract class IdentifiedEntity {
 
     @Id
-    @GeneratedValue(generator = "sequence_per_table_generator")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     protected Long pk;
 
     @Version

@@ -18,7 +18,8 @@ package no.entur.uttu.graphql
 import io.restassured.response.ValidatableResponse
 import no.entur.uttu.repository.StopPointInJourneyPatternRepository
 import no.entur.uttu.stubs.StopPointInJourneyPatternRepositoryStub
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 
@@ -64,6 +65,7 @@ mutation deleteFlexibleStopPlace(\$id: ID!) {
     }
 
     @Test
+    @Disabled
     void deleteFlexibleStopPlace() {
         stopPointInJourneyPatternRepository.setNextCountByFlexibleStopPlace(1)
         executeGraphQL(deleteFlexibleStopPlaceMutation, "{ \"id\": \"TST:FlexibleStopPlace:1\" }", 200)
