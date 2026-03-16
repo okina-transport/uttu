@@ -131,6 +131,7 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
         headers.setAccept(Collections.singletonList(mediaType));
         headers.set(ET_CLIENT_NAME_HEADER, clientName);
         headers.set(ET_CLIENT_ID_HEADER, clientId);
+        headers.set("Authorization", "Bearer " + tokenService.getToken());
         return new HttpEntity<>(headers);
     }
 
