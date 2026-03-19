@@ -319,7 +319,6 @@ public class LinesGraphQLSchema {
         GraphQLFieldDefinition idFieldDefinition = newFieldDefinition()
                 .name(FIELD_ID)
                 .type(new GraphQLNonNull(GraphQLID))
-            //    .dataFetcher(env -> ((ProviderEntity) env.getSource()).getNetexId())
                 .build();
 
         GraphQLFieldDefinition versionField = newFieldDefinition()
@@ -380,45 +379,28 @@ public class LinesGraphQLSchema {
                 .build();
 
 
-        GraphQLCodeRegistry.Builder cr = GraphQLCodeRegistry.newCodeRegistry()
-                .dataFetcher(
-                        FieldCoordinates.coordinates("FlexibleStopPlace", FIELD_ID),
-                        (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-                );
 
-
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("FlexibleLine", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+        List<String> identifiedEntityTypes = List.of(
+                "StopPointInJourneyPattern",
+                "ServiceJourney",
+                "DayType",
+                "DestinationDisplay",
+                "Notice",
+                "TimetabledPassingTime",
+                "Export",
+                "JourneyPattern",
+                "Network",
+                "FlexibleLine",
+                "FlexibleStopPlace"
         );
 
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("Network", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-        );
-
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("JourneyPattern", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-        );
-
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("ServiceJourney", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-        );
-
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("DayType", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-        );
-
-        cr.dataFetcher(
-                FieldCoordinates.coordinates("Export", FIELD_ID),
-                (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
-        );
-
-
-
+        GraphQLCodeRegistry.Builder cr = GraphQLCodeRegistry.newCodeRegistry();
+        for (String type : identifiedEntityTypes) {
+            cr.dataFetcher(
+                    FieldCoordinates.coordinates(type, "id"),
+                    (DataFetcher<Object>) env -> ((ProviderEntity) env.getSource()).getNetexId()
+            );
+        }
 
         codeRegistry = cr.build();
 
