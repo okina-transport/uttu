@@ -1,7 +1,7 @@
 package no.entur.uttu.graphql
 
 import io.restassured.response.ValidatableResponse
-import no.entur.uttu.model.job.ExportStatusEnumeration
+import no.entur.uttu.model.job.JobStatus
 import org.junit.jupiter.api.Test
 
 import java.time.LocalDate
@@ -48,7 +48,7 @@ class ExportFixedLineGraphQLIntegrationTest extends AbstractFixedLinesGraphQLInt
         ValidatableResponse rsp = executeGraphQL(createExportQuery, variables)
                 .body("data.export.id", startsWith("TST:Export"))
                 .body("data.export.name", equalTo(name))
-                .body("data.export.exportStatus", equalTo(ExportStatusEnumeration.SUCCESS.value()))
+                .body("data.export.exportStatus", equalTo(JobStatus.FINISHED.value()))
                 .body("data.export.downloadUrl", startsWith("tst/export/"))
 
         String downloadUrl = rsp.extract().body().path("data.export.downloadUrl")

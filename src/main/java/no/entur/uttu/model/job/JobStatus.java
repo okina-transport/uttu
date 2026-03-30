@@ -15,15 +15,15 @@
 
 package no.entur.uttu.model.job;
 
-public enum ExportStatusEnumeration {
+public enum JobStatus {
 
-    IN_PROGRESS("inProgress"),
+    PROCESSING("processing"),
     FAILED("failed"),
-    SUCCESS("success");
+    FINISHED("finished");
 
     private final String value;
 
-    ExportStatusEnumeration(String v) {
+    JobStatus(String v) {
         this.value = v;
     }
 
