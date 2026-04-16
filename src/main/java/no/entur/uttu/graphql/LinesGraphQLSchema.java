@@ -37,7 +37,6 @@ import no.entur.uttu.model.FlexibleArea;
 import no.entur.uttu.model.FlexibleLine;
 import no.entur.uttu.model.FlexibleLineTypeEnumeration;
 import no.entur.uttu.model.FlexibleStopPlace;
-import no.entur.uttu.model.Network;
 import no.entur.uttu.model.ProviderEntity;
 import no.entur.uttu.model.PurchaseMomentEnumeration;
 import no.entur.uttu.model.PurchaseWhenEnumeration;
@@ -45,7 +44,7 @@ import no.entur.uttu.model.TimetabledPassingTime;
 import no.entur.uttu.model.VehicleModeEnumeration;
 import no.entur.uttu.model.VehicleSubmodeEnumeration;
 import no.entur.uttu.model.job.Export;
-import no.entur.uttu.model.job.ExportStatusEnumeration;
+import no.entur.uttu.model.job.JobStatus;
 import no.entur.uttu.model.job.SeverityEnumeration;
 import no.entur.uttu.profile.Profile;
 import no.entur.uttu.repository.DataSpaceCleaner;
@@ -264,7 +263,7 @@ public class LinesGraphQLSchema {
             .build();
 
     private GraphQLEnumType dayOfWeekEnum = createEnum("DayOfWeekEnumeration", DayOfWeek.values(), (t -> t.name().toLowerCase()));
-    private GraphQLEnumType exportStatusEnum = createEnum("ExportStatusEnumeration", ExportStatusEnumeration.values(), (t -> t.name().toLowerCase()));
+    private GraphQLEnumType exportStatusEnum = createEnum("ExportStatusEnumeration", JobStatus.values(), (t -> t.name().toLowerCase()));
     private GraphQLEnumType severityEnum = createEnum("SeverityEnumeration", SeverityEnumeration.values(), (t -> t.name().toLowerCase()));
 
     private GraphQLEnumType vehicleModeEnum;

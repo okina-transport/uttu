@@ -38,7 +38,7 @@ public class Export extends ProviderEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    private ExportStatusEnumeration exportStatus = ExportStatusEnumeration.IN_PROGRESS;
+    private JobStatus exportStatus = JobStatus.PROCESSING;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExportMessage> messages = new ArrayList<>();
@@ -70,15 +70,15 @@ public class Export extends ProviderEntity {
         this.exportLineAssociations = exportLineAssociations;
     }
 
-    public ExportStatusEnumeration getExportStatus() {
+    public JobStatus getExportStatus() {
         return exportStatus;
     }
 
     public void markAsFinished() {
         if (messages.stream().anyMatch(m -> SeverityEnumeration.ERROR.equals(m.getSeverity()))) {
-            exportStatus = ExportStatusEnumeration.FAILED;
+            exportStatus = JobStatus.FAILED;
         } else {
-            exportStatus = ExportStatusEnumeration.SUCCESS;
+            exportStatus = JobStatus.FINISHED;
         }
     }
 
