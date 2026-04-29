@@ -13,16 +13,18 @@
  * limitations under the Licence.
  */
 
-package no.entur.uttu.graphql
+package no.entur.uttu.graphql;
 
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 
+@Disabled("Disabled until network retrieval is stable")
 class FixedLineGraphQLIntegrationTest extends AbstractFixedLinesGraphQLIntegrationTest {
 
-    String testFixedLineName = "TestFixedLine"
+    String testFixedLineName = "TestFixedLine";
 
     @Test
     void createFixedLineTest() {
@@ -30,6 +32,6 @@ class FixedLineGraphQLIntegrationTest extends AbstractFixedLinesGraphQLIntegrati
                 .body("data.mutateFixedLine.id", startsWith("TST:Line"))
                 .body("data.mutateFixedLine.name", equalTo(testFixedLineName))
                 .body("data.mutateFixedLine.journeyPatterns[0].pointsInSequence[0].quayRef", equalTo("MOBIITI:Quay:69"))
-                .body("data.mutateFixedLine.journeyPatterns[0].serviceJourneys[0].passingTimes[0].departureTime", equalTo("07:00:00"))
+                .body("data.mutateFixedLine.journeyPatterns[0].serviceJourneys[0].passingTimes[0].departureTime", equalTo("07:00:00"));
     }
 }

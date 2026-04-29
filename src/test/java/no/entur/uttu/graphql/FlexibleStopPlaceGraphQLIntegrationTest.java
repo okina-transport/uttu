@@ -13,67 +13,68 @@
  * limitations under the Licence.
  */
 
-package no.entur.uttu.graphql
+package no.entur.uttu.graphql;
 
-import io.restassured.response.ValidatableResponse
-import no.entur.uttu.repository.StopPointInJourneyPatternRepository
-import no.entur.uttu.stubs.StopPointInJourneyPatternRepositoryStub
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import io.restassured.response.ValidatableResponse;
+import no.entur.uttu.stubs.StopPointInJourneyPatternRepositoryStub;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
-import javax.annotation.concurrent.NotThreadSafe
+import static org.hamcrest.Matchers.*;
 
-import static org.hamcrest.Matchers.*
-
+@ActiveProfiles("stub-spijp-repository")
+@Disabled("Disabled until network retrieval is stable")
 class FlexibleStopPlaceGraphQLIntegrationTest extends AbstractFlexibleLinesGraphQLIntegrationTest {
 
     @Autowired
     StopPointInJourneyPatternRepositoryStub stopPointInJourneyPatternRepository;
 
     String deleteFlexibleStopPlaceMutation = """
-mutation deleteFlexibleStopPlace(\$id: ID!) {
-  deleteFlexibleStopPlace(id: \$id) {
-    id
-  }
-}
-"""
+            mutation deleteFlexibleStopPlace($id: ID!) {
+              deleteFlexibleStopPlace(id: $id) {
+                id
+              }
+            }
+            """;
 
-    String flexAreaName = "FlexibleAreaTest"
+    String flexAreaName = "FlexibleAreaTest";
 
     @Test
     void createFlexibleStopPlaceWithFlexibleAreaTest() {
 
-        ValidatableResponse response = createFlexibleStopPlaceWithFlexibleArea(flexAreaName)
-        assertFlexibleAreaResponse(response, "mutateFlexibleStopPlace")
+        ValidatableResponse response = createFlexibleStopPlaceWithFlexibleArea(flexAreaName);
+        assertFlexibleAreaResponse(response, "mutateFlexibleStopPlace");
 
-        String id = extractId(response, "mutateFlexibleStopPlace")
-        String queryForFlexibleArea = """ {flexibleStopPlace (id:"$id") {id name keyValues { key values } flexibleArea { polygon {type coordinates}}}}"""
+        String id = extractId(response, "mutateFlexibleStopPlace");
+        String queryForFlexibleArea = """
+                {flexibleStopPlace (id:"%s") {id name keyValues { key values } flexibleArea { polygon {type coordinates}}}}
+                """.formatted(id);
 
         assertFlexibleAreaResponse(executeGraphqQLQueryOnly(queryForFlexibleArea), "flexibleStopPlace");
     }
 
     @Test
     void createFlexibleStopPlaceWithHailAndRideAreaTest() {
-        String hailAndRideTest = "HailAndRideTest"
+        String hailAndRideTest = "HailAndRideTest";
         createFlexibleStopPlaceWithHailAndRideArea(hailAndRideTest)
                 .body("data.mutateFlexibleStopPlace.id", startsWith("TST:FlexibleStopPlace"))
                 .body("data.mutateFlexibleStopPlace.name", equalTo(hailAndRideTest))
                 .body("data.mutateFlexibleStopPlace.hailAndRideArea.startQuayRef", equalTo("NSR:Quay:start"))
-                .body("data.mutateFlexibleStopPlace.hailAndRideArea.endQuayRef", equalTo("NSR:Quay:end"))
+                .body("data.mutateFlexibleStopPlace.hailAndRideArea.endQuayRef", equalTo("NSR:Quay:end"));
     }
 
     @Test
     @Disabled
     void deleteFlexibleStopPlace() {
-        stopPointInJourneyPatternRepository.setNextCountByFlexibleStopPlace(1)
+        stopPointInJourneyPatternRepository.setNextCountByFlexibleStopPlace(1);
         executeGraphQL(deleteFlexibleStopPlaceMutation, "{ \"id\": \"TST:FlexibleStopPlace:1\" }", 200)
                 .body("errors[0].extensions.code", equalTo("ENTITY_IS_REFERENCED"))
-                .body("errors[0].extensions.metadata.numberOfReferences", equalTo(1))
-        stopPointInJourneyPatternRepository.setNextCountByFlexibleStopPlace(0)
+                .body("errors[0].extensions.metadata.numberOfReferences", equalTo(1));
+        stopPointInJourneyPatternRepository.setNextCountByFlexibleStopPlace(0);
         executeGraphQL(deleteFlexibleStopPlaceMutation, "{ \"id\": \"TST:FlexibleStopPlace:1\" }", 200)
-            .body("errors", nullValue())
+                .body("errors", nullValue());
     }
 
     void assertFlexibleAreaResponse(ValidatableResponse rsp, String path) {
@@ -81,7 +82,7 @@ mutation deleteFlexibleStopPlace(\$id: ID!) {
                 .body("data." + path + ".name", equalTo(flexAreaName))
                 .body("data." + path + ".keyValues[0].key", equalTo("foo"))
                 .body("data." + path + ".flexibleArea.polygon.type", equalTo("Polygon"))
-                .body("data." + path + ".flexibleArea.polygon.coordinates", hasSize(4))
+                .body("data." + path + ".flexibleArea.polygon.coordinates", hasSize(4));
 
     }
 

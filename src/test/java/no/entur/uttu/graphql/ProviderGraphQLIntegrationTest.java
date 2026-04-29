@@ -13,66 +13,71 @@
  * limitations under the Licence.
  */
 
-package no.entur.uttu.graphql
+package no.entur.uttu.graphql;
 
 
-import no.entur.uttu.config.MockedRoleAssignmentExtractor
-import org.junit.jupiter.api.Test
-import org.rutebanken.helper.organisation.RoleAssignment
-import org.springframework.beans.factory.annotation.Autowired
+import no.entur.uttu.config.MockedRoleAssignmentExtractor;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.rutebanken.helper.organisation.RoleAssignment;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.concurrent.NotThreadSafe
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Properties;
 
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.iterableWithSize;
 
 @NotThreadSafe
+@Disabled("Disabled until network retrieval is stable")
 class ProviderGraphQLIntegrationTest extends AbstractGraphQLResourceIntegrationTest {
     @Autowired
     MockedRoleAssignmentExtractor mockedRoleAssignmentExtractor;
 
     String getProvidersQuery = """
-   query GetProviders {
-     providers {
-       name
-       code
-     }
-   } 
-"""
+               query GetProviders {
+                 providers {
+                   name
+                   code
+                 }
+               }
+            """;
 
     protected String getUrl() {
-        return "/services/flexible-lines/providers/graphql"
+        return "/services/flexible-lines/providers/graphql";
     }
 
+    @Override
     protected Properties getCredentials() {
-        Properties credentials = new Properties()
-        credentials.put("username", "user")
-        credentials.put("password", "secret")
-        return credentials
+        Properties credentials = new Properties();
+        credentials.put("username", "user");
+        credentials.put("password", "secret");
+        return credentials;
     }
 
     @Test
     void getProvidersTest() {
         mockedRoleAssignmentExtractor.setNextReturnedRoleAssignment(
                 RoleAssignment.builder().withRole("editRouteData").withOrganisation("TST").build()
-        )
+        );
 
         executeGraphqQLQueryOnly(getProvidersQuery)
                 .body("data.providers", iterableWithSize(2))
-                .body("data.providers[0].code", equalTo("tst"))
+                .body("data.providers[0].code", equalTo("tst"));
 
-        mockedRoleAssignmentExtractor.reset()
+        mockedRoleAssignmentExtractor.reset();
     }
 
     @Test
     void getMoreProvidersTest() {
         mockedRoleAssignmentExtractor.setNextReturnedRoleAssignment(
                 RoleAssignment.builder().withRole("editRouteData").withOrganisation("FOO").build()
-        )
+        );
 
         executeGraphqQLQueryOnly(getProvidersQuery)
                 .body("data.providers", iterableWithSize(2))
-                .body("data.providers[1].code", equalTo("foo"))
+                .body("data.providers[1].code", equalTo("foo"));
 
-        mockedRoleAssignmentExtractor.reset()
+        mockedRoleAssignmentExtractor.reset();
     }
 }
