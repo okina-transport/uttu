@@ -1,22 +1,26 @@
 package no.entur.uttu.export.netex;
 
+import no.entur.uttu.UttuIntegrationTest;
 import no.entur.uttu.error.codedexception.CodedIllegalArgumentException;
 import no.entur.uttu.model.FixedLine;
 import no.entur.uttu.model.Line;
 import no.entur.uttu.model.job.ExportLineAssociation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class NetexExporterTest {
-    @Test
-    public void findLinesToExportReturnsAll() {
-        NetexExporter exporter = new NetexExporter();
+class NetexExporterTest extends UttuIntegrationTest {
 
+    @Autowired
+    private NetexExporter exporter;
+
+    @Test
+    void findLinesToExportReturnsAll() {
         Line line = new FixedLine();
 
         Assertions.assertEquals(
@@ -26,9 +30,7 @@ public class NetexExporterTest {
     }
 
     @Test
-    public void findLinesToExportFiltersWithLineAssociation() {
-        NetexExporter exporter = new NetexExporter();
-
+    void findLinesToExportFiltersWithLineAssociation() {
         Line line1 = new FixedLine();
         Line line2 = new FixedLine();
 
@@ -46,22 +48,19 @@ public class NetexExporterTest {
     }
 
     @Test()
-    public void findLinesToExportErrorIfEmpty() {
-
+    void findLinesToExportErrorIfEmpty() {
         assertThrows(CodedIllegalArgumentException.class, () -> {
-            NetexExporter exporter = new NetexExporter();
+
             exporter.findLinesToExport(List.of(), List.of());
         });
-
 
 
     }
 
     @Test()
-    public void findLinesToExportErrorIfEmptyAfterFiltering() {
-
+    void findLinesToExportErrorIfEmptyAfterFiltering() {
         assertThrows(CodedIllegalArgumentException.class, () -> {
-            NetexExporter exporter = new NetexExporter();
+
 
             Line line1 = new FixedLine();
             Line line2 = new FixedLine();

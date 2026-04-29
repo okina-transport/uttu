@@ -16,10 +16,15 @@
 package no.entur.uttu.model;
 
 import jakarta.persistence.MappedSuperclass;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import javax.validation.constraints.Size;
 
 @MappedSuperclass
-public abstract class GroupOfEntities_VersionStructure
+@Data
+@EqualsAndHashCode(callSuper = true)
+public abstract class GroupOfEntitiesVersionStructure
         extends ProviderEntity {
 
     protected String name;
@@ -30,39 +35,4 @@ public abstract class GroupOfEntities_VersionStructure
     protected String description;
 
     protected String privateCode;
-
-    public GroupOfEntities_VersionStructure() {
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPrivateCode() {
-        return privateCode;
-    }
-
-    public void setPrivateCode(String value) {
-        this.privateCode = value;
-    }
 }

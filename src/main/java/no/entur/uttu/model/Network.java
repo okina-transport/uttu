@@ -15,12 +15,14 @@
 
 package no.entur.uttu.model;
 
-import jakarta.persistence.SequenceGenerator;
-import no.entur.uttu.util.Preconditions;
-
 import jakarta.persistence.Entity;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import no.entur.uttu.util.Preconditions;
+
 import javax.validation.constraints.NotNull;
 
 import static no.entur.uttu.model.Constraints.NETWORK_UNIQUE_NAME;
@@ -28,25 +30,19 @@ import static no.entur.uttu.model.Constraints.NETWORK_UNIQUE_NAME;
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = NETWORK_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
 @SequenceGenerator(
-        name = "network_gen",
+        name = "identified_entity_gen",
         sequenceName = "network_seq",
         allocationSize = 10
 )
-public class Network extends GroupOfEntities_VersionStructure {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Network extends GroupOfEntitiesVersionStructure {
 
     /**
      * Reference to Authority in organisation registry.
      */
     @NotNull
     private String authorityRef;
-
-    public String getAuthorityRef() {
-        return authorityRef;
-    }
-
-    public void setAuthorityRef(String authorityRef) {
-        this.authorityRef = authorityRef;
-    }
 
     @Override
     public void checkPersistable() {

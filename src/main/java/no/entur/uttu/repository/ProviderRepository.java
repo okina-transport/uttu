@@ -16,16 +16,13 @@
 package no.entur.uttu.repository;
 
 import no.entur.uttu.model.Provider;
+import no.entur.uttu.repository.generic.IdentifiedRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface ProviderRepository {
-    Provider getOne(String code);
-
-    Provider getOne(Long id);
-
-    List<Provider> findAll();
-
-    <S extends Provider> S save(S entity);
+@Repository
+public interface ProviderRepository extends IdentifiedRepository<Provider> {
+    Optional<Provider> findByCode(String code);
 
 }

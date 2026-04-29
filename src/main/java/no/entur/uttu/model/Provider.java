@@ -17,6 +17,9 @@ package no.entur.uttu.model;
 
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 
@@ -25,10 +28,13 @@ import static no.entur.uttu.model.Constraints.PROVIDER_UNIQUE_CODE;
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = PROVIDER_UNIQUE_CODE, columnNames = "code")})
 @SequenceGenerator(
-        name = "provider_gen",
+        name = "identified_entity_gen",
         sequenceName = "provider_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true, of = {"code", "name"})
+@ToString(callSuper = true, of = {"code", "name"})
+@Data
 public class Provider extends IdentifiedEntity {
     @NotNull
     private String code;
@@ -36,33 +42,6 @@ public class Provider extends IdentifiedEntity {
     @NotNull
     private String name;
 
-    @NotNull
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Codespace codespace;
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Codespace getCodespace() {
-        return codespace;
-    }
-
-    public void setCodespace(Codespace codespace) {
-        this.codespace = codespace;
-    }
-
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
 }

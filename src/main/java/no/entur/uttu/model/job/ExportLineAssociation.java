@@ -5,8 +5,6 @@ import no.entur.uttu.model.Line;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.validation.constraints.NotNull;
-
 @Entity
 @SequenceGenerator(
         name = "export_line_association_seq_gen",
@@ -18,13 +16,11 @@ public class ExportLineAssociation {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     protected Long id;
 
-    @ManyToOne
-    @NotNull
+    @ManyToOne(optional = false)
     private Export export;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @NotNull
     private Line line;
 
     public Long getId() {

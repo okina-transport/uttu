@@ -17,15 +17,19 @@ package no.entur.uttu.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Size;
 
 @Entity
 @SequenceGenerator(
-        name = "contact_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "contact_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class Contact extends IdentifiedEntity {
     @Size(max = 256)
     private String email;
@@ -39,44 +43,4 @@ public class Contact extends IdentifiedEntity {
 
     @Size(max = 4000)
     private String furtherDetails;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getContactPerson() {
-        return contactPerson;
-    }
-
-    public void setContactPerson(String contactPerson) {
-        this.contactPerson = contactPerson;
-    }
-
-    public String getFurtherDetails() {
-        return furtherDetails;
-    }
-
-    public void setFurtherDetails(String furtherDetails) {
-        this.furtherDetails = furtherDetails;
-    }
 }

@@ -15,34 +15,30 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
 import no.entur.uttu.util.Preconditions;
 
-import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
 @SequenceGenerator(
-        name = "notice_gen",
+        name = "identified_entity_gen",
         sequenceName = "notice_seq",
         allocationSize = 10
 )
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class Notice extends ProviderEntity {
 
     @NotNull
     @Size(max = 4000)
     private String text;
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
 
     public Notice withText(String text) {
         this.text = text;

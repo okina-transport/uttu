@@ -16,30 +16,25 @@
 package no.entur.uttu.export.netex.producer;
 
 
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElementDecl;
 import no.entur.uttu.config.ExportTimeZone;
 import no.entur.uttu.export.model.AvailabilityPeriod;
 import no.entur.uttu.export.model.ExportException;
 import no.entur.uttu.export.netex.NetexExportContext;
+import no.entur.uttu.model.GroupOfEntitiesVersionStructure;
 import no.entur.uttu.model.ProviderEntity;
 import no.entur.uttu.model.Ref;
 import no.entur.uttu.model.VehicleSubmodeEnumeration;
 import no.entur.uttu.util.DateUtils;
 import org.rutebanken.netex.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.annotation.XmlElementDecl;
 import javax.xml.namespace.QName;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -50,22 +45,18 @@ public class NetexObjectFactory {
 
     public static final String VERSION_ONE = "1";
     public static final String DEFAULT_LANGUAGE = "fr";
-    public static final String NSR_XMLNS = "NSR";
-    public static final String NSR_XMLNSURL = "http://www.rutebanken.org/ns/nsr";
 
     private static final QName _AuthorityRef_QNAME = new QName("http://www.netex.org.uk/netex", "AuthorityRef");
-
+    private final ObjectFactory objectFactory = new ObjectFactory();
+    private final DateUtils dateUtils;
+    private final ExportTimeZone exportTimeZone;
     @Value("${netex.export.version:1.1:FR-NETEX_CALENDRIER-2.2}")
     private String netexVersion;
 
-
-    private ObjectFactory objectFactory = new ObjectFactory();
-
-    @Autowired
-    private DateUtils dateUtils;
-
-    @Autowired
-    private ExportTimeZone exportTimeZone;
+    public NetexObjectFactory(DateUtils dateUtils, ExportTimeZone exportTimeZone) {
+        this.dateUtils = dateUtils;
+        this.exportTimeZone = exportTimeZone;
+    }
 
     public <E> JAXBElement<E> wrapAsJAXBElement(E entity) {
         if (entity == null) {
@@ -81,14 +72,15 @@ public class NetexObjectFactory {
             substitutionHeadName = "TransportOrganisationRef"
     )
     public JAXBElement<AuthorityRef> createAuthorityRef(AuthorityRef value) {
-        return new JAXBElement(_AuthorityRef_QNAME, AuthorityRef.class, (Class)null, value);
+        return new JAXBElement(_AuthorityRef_QNAME, AuthorityRef.class, null, value);
     }
-    public <N extends LinkSequence_VersionStructure, L extends no.entur.uttu.model.GroupOfEntities_VersionStructure> N populate(N netex, L local) {
+
+    public <N extends LinkSequence_VersionStructure, L extends GroupOfEntitiesVersionStructure> N populate(N netex, L local) {
         return (N) populateId(netex, local.getRef())
-                           .withName(createMultilingualString(local.getName()))
-                           .withPrivateCode(createPrivateCodeStructure(local.getPrivateCode()))
-                           .withShortName(createMultilingualString(local.getShortName()))
-                           .withDescription(createMultilingualString(local.getDescription()));
+                .withName(createMultilingualString(local.getName()))
+                .withPrivateCode(createPrivateCodeStructure(local.getPrivateCode()))
+                .withShortName(createMultilingualString(local.getShortName()))
+                .withDescription(createMultilingualString(local.getDescription()));
     }
 
     public <N extends EntityInVersionStructure> N populateId(N netex, Ref ref) {
@@ -117,11 +109,11 @@ public class NetexObjectFactory {
 
         String participantRef = toNMTOKENString(exportContext.provider.getName());
         PublicationDeliveryStructure publicationDeliveryStructure = objectFactory.createPublicationDeliveryStructure()
-                                                                            .withVersion(netexVersion)
-                                                                            .withPublicationTimestamp(dateUtils.toExportLocalDateTime(exportContext.publicationTimestamp))
-                                                                            .withParticipantRef(participantRef)
-                                                                            .withDescription(createMultilingualString("Flexible lines"))
-                                                                            .withDataObjects(dataObjects);
+                .withVersion(netexVersion)
+                .withPublicationTimestamp(dateUtils.toExportLocalDateTime(exportContext.publicationTimestamp))
+                .withParticipantRef(participantRef)
+                .withDescription(createMultilingualString("Flexible lines"))
+                .withDataObjects(dataObjects);
         return objectFactory.createPublicationDelivery(publicationDeliveryStructure);
     }
 
@@ -139,22 +131,22 @@ public class NetexObjectFactory {
 
     public <F extends Common_VersionFrameStructure> CompositeFrame createCompositeFrame(NetexExportContext context, AvailabilityPeriod availabilityPeriod, F... frames) {
         ValidityConditions_RelStructure validityConditionsStruct = objectFactory.createValidityConditions_RelStructure()
-                                                                           .withValidityConditionRefOrValidBetweenOrValidityCondition_(createAvailabilityCondition(availabilityPeriod, context));
+                .withValidityConditionRefOrValidBetweenOrValidityCondition_(createAvailabilityCondition(availabilityPeriod, context));
 
         no.entur.uttu.model.Codespace localProviderCodespace = context.provider.getCodespace();
         Codespace providerCodespace = createCodespace(localProviderCodespace.getXmlns(), localProviderCodespace.getXmlnsUrl());
 
 
         Codespaces_RelStructure codespaces = objectFactory.createCodespaces_RelStructure()
-                                                     .withCodespaceRefOrCodespace(providerCodespace);
+                .withCodespaceRefOrCodespace(providerCodespace);
 
 
         LocaleStructure localeStructure = objectFactory.createLocaleStructure()
-                                                  .withTimeZone(exportTimeZone.getDefaultTimeZoneId().getId())
-                                                  .withDefaultLanguage(DEFAULT_LANGUAGE);
+                .withTimeZone(exportTimeZone.getDefaultTimeZoneId().getId())
+                .withDefaultLanguage(DEFAULT_LANGUAGE);
 
         VersionFrameDefaultsStructure versionFrameDefaultsStructure = objectFactory.createVersionFrameDefaultsStructure()
-                                                                              .withDefaultLocale(localeStructure);
+                .withDefaultLocale(localeStructure);
 
         Frames_RelStructure frames_relStructure = null;
         if (frames != null) {
@@ -162,17 +154,14 @@ public class NetexObjectFactory {
         }
         String compositeFrameId = NetexIdProducer.generateId(CompositeFrame.class, context);
 
-        CompositeFrame compositeFrame = objectFactory.createCompositeFrame()
-                                                .withVersion(VERSION_ONE)
-                                                .withCreated(dateUtils.toExportLocalDateTime(context.publicationTimestamp))
-                                                .withId(compositeFrameId)
-                                                .withValidityConditions(validityConditionsStruct)
-                                                .withFrames(frames_relStructure)
-                                                .withCodespaces(codespaces)
-                                                .withFrameDefaults(versionFrameDefaultsStructure);
-
-
-        return compositeFrame;
+        return objectFactory.createCompositeFrame()
+                .withVersion(VERSION_ONE)
+                .withCreated(dateUtils.toExportLocalDateTime(context.publicationTimestamp))
+                .withId(compositeFrameId)
+                .withValidityConditions(validityConditionsStruct)
+                .withFrames(frames_relStructure)
+                .withCodespaces(codespaces)
+                .withFrameDefaults(versionFrameDefaultsStructure);
     }
 
 
@@ -180,15 +169,14 @@ public class NetexObjectFactory {
         String resourceFrameId = NetexIdProducer.generateId(ResourceFrame.class, context);
 
 
-
         OrganisationsInFrame_RelStructure organisationsStruct = objectFactory.createOrganisationsInFrame_RelStructure()
-                                                                        .withOrganisation_(authorities.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()))
-                                                                        .withOrganisation_(operators.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()));
+                .withOrganisation_(authorities.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()))
+                .withOrganisation_(operators.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()));
 
         return objectFactory.createResourceFrame()
-                       .withOrganisations(organisationsStruct)
-                       .withVersion(VERSION_ONE)
-                       .withId(resourceFrameId);
+                .withOrganisations(organisationsStruct)
+                .withVersion(VERSION_ONE)
+                .withId(resourceFrameId);
     }
 
     public SiteFrame createSiteFrame(NetexExportContext context, Collection<FlexibleStopPlace> flexibleStopPlaces) {
@@ -197,22 +185,22 @@ public class NetexObjectFactory {
         }
         String frameId = NetexIdProducer.generateId(SiteFrame.class, context);
         return objectFactory.createSiteFrame()
-                       .withFlexibleStopPlaces(new FlexibleStopPlacesInFrame_RelStructure().withFlexibleStopPlace(flexibleStopPlaces))
-                       .withVersion(VERSION_ONE)
-                       .withId(frameId);
+                .withFlexibleStopPlaces(new FlexibleStopPlacesInFrame_RelStructure().withFlexibleStopPlace(flexibleStopPlaces))
+                .withVersion(VERSION_ONE)
+                .withId(frameId);
     }
 
     public ServiceFrame createCommonServiceFrame(NetexExportContext context, Collection<Network> networks, Collection<RoutePoint> routePoints,
-                                                        Collection<ScheduledStopPoint> scheduledStopPoints, Collection<? extends StopAssignment_VersionStructure> stopAssignmentElements,
-                                                        Collection<Notice> notices, Collection<DestinationDisplay> destinationDisplays) {
+                                                 Collection<ScheduledStopPoint> scheduledStopPoints, Collection<? extends StopAssignment_VersionStructure> stopAssignmentElements,
+                                                 Collection<Notice> notices, Collection<DestinationDisplay> destinationDisplays) {
 
         RoutePointsInFrame_RelStructure routePointStruct = objectFactory.createRoutePointsInFrame_RelStructure()
-                                                                   .withRoutePoint(routePoints);
+                .withRoutePoint(routePoints);
 
         ScheduledStopPointsInFrame_RelStructure scheduledStopPointsStruct = objectFactory.createScheduledStopPointsInFrame_RelStructure().withScheduledStopPoint(scheduledStopPoints);
 
         StopAssignmentsInFrame_RelStructure stopAssignmentsStruct = objectFactory.createStopAssignmentsInFrame_RelStructure()
-                                                                            .withStopAssignment(stopAssignmentElements.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()));
+                .withStopAssignment(stopAssignmentElements.stream().map(this::wrapAsJAXBElement).collect(Collectors.toList()));
 
         DestinationDisplaysInFrame_RelStructure destinationDisplaysInFrame_relStructure = null;
         if (!CollectionUtils.isEmpty(destinationDisplays)) {
@@ -240,20 +228,20 @@ public class NetexObjectFactory {
         }
 
         return createServiceFrame(context)
-                       .withRoutePoints(routePointStruct)
-                       .withScheduledStopPoints(scheduledStopPointsStruct)
-                       .withStopAssignments(stopAssignmentsStruct)
-                       .withNetwork(network)
-                       .withAdditionalNetworks(additionalNetworks)
-                       .withNotices(noticesInFrame_relStructure)
-                       .withDestinationDisplays(destinationDisplaysInFrame_relStructure);
+                .withRoutePoints(routePointStruct)
+                .withScheduledStopPoints(scheduledStopPointsStruct)
+                .withStopAssignments(stopAssignmentsStruct)
+                .withNetwork(network)
+                .withAdditionalNetworks(additionalNetworks)
+                .withNotices(noticesInFrame_relStructure)
+                .withDestinationDisplays(destinationDisplaysInFrame_relStructure);
 
     }
 
 
     public <N extends Line_VersionStructure> ServiceFrame createLineServiceFrame(NetexExportContext context, N line, List<Route> routes,
-                                                                                        Collection<JourneyPattern> journeyPatterns,
-                                                                                        Collection<NoticeAssignment> noticeAssignments) {
+                                                                                 Collection<JourneyPattern> journeyPatterns,
+                                                                                 Collection<NoticeAssignment> noticeAssignments) {
         RoutesInFrame_RelStructure routesInFrame = objectFactory.createRoutesInFrame_RelStructure();
         for (Route route : routes) {
             JAXBElement<Route> routeElement = objectFactory.createRoute(route);
@@ -272,10 +260,10 @@ public class NetexObjectFactory {
         orderAssignments(noticeAssignments);
 
         return createServiceFrame(context)
-                       .withRoutes(routesInFrame)
-                       .withLines(linesInFrame)
-                       .withJourneyPatterns(journeyPatternsInFrame)
-                       .withNoticeAssignments(wrapNoticeAssignments(noticeAssignments));
+                .withRoutes(routesInFrame)
+                .withLines(linesInFrame)
+                .withJourneyPatterns(journeyPatternsInFrame)
+                .withNoticeAssignments(wrapNoticeAssignments(noticeAssignments));
     }
 
     private void orderAssignments(Collection<? extends Assignment_VersionStructure_> assignments) {
@@ -287,8 +275,8 @@ public class NetexObjectFactory {
         String serviceFrameId = NetexIdProducer.generateId(ServiceFrame.class, context);
 
         return objectFactory.createServiceFrame()
-                       .withVersion(VERSION_ONE)
-                       .withId(serviceFrameId);
+                .withVersion(VERSION_ONE)
+                .withId(serviceFrameId);
     }
 
 
@@ -300,27 +288,27 @@ public class NetexObjectFactory {
 
         String timetableFrameId = NetexIdProducer.generateId(TimetableFrame.class, context);
         return objectFactory.createTimetableFrame()
-                       .withVersion(VERSION_ONE)
-                       .withId(timetableFrameId)
-                       .withNoticeAssignments(wrapNoticeAssignments(noticeAssignments))
-                       .withVehicleJourneys(journeysInFrameRelStructure);
+                .withVersion(VERSION_ONE)
+                .withId(timetableFrameId)
+                .withNoticeAssignments(wrapNoticeAssignments(noticeAssignments))
+                .withVehicleJourneys(journeysInFrameRelStructure);
 
     }
 
     public <T extends ProviderEntity, N extends VersionOfObjectRefStructure> List<NoticeAssignment> createNoticeAssignments(T entity,
-                                                                                                                                   Class<N> refStructureClass,
-                                                                                                                                   Collection<no.entur.uttu.model.Notice> notices,
-                                                                                                                                   NetexExportContext context) {
+                                                                                                                            Class<N> refStructureClass,
+                                                                                                                            Collection<no.entur.uttu.model.Notice> notices,
+                                                                                                                            NetexExportContext context) {
         return notices.stream().map(notice -> createNoticeAssignment(entity, refStructureClass, notice, context)).collect(Collectors.toList());
     }
 
     public <T extends ProviderEntity, N extends VersionOfObjectRefStructure> NoticeAssignment createNoticeAssignment(T entity, Class<N> refStructureClass,
-                                                                                                                            no.entur.uttu.model.Notice notice,
-                                                                                                                            NetexExportContext context) {
+                                                                                                                     no.entur.uttu.model.Notice notice,
+                                                                                                                     NetexExportContext context) {
         String netexId = NetexIdProducer.generateId(NoticeAssignment.class, context);
         N refStructure;
         try {
-            refStructure = refStructureClass.newInstance();
+            refStructure = refStructureClass.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new ExportException("Failed to instantiate ref structure class (" + refStructureClass.getSimpleName() + "): " + e.getMessage(), e);
         }
@@ -328,8 +316,8 @@ public class NetexObjectFactory {
         populateRefStructure(refStructure, entity.getRef(), true);
 
         return objectFactory.createNoticeAssignment().withId(netexId).withVersion(VERSION_ONE)
-                       .withNoticeRef(populateRefStructure(new NoticeRefStructure(), notice.getRef(), false))
-                       .withNoticedObjectRef(refStructure);
+                .withNoticeRef(populateRefStructure(new NoticeRefStructure(), notice.getRef(), false))
+                .withNoticedObjectRef(refStructure);
 
     }
 
@@ -342,7 +330,7 @@ public class NetexObjectFactory {
     }
 
     public ServiceCalendarFrame createServiceCalendarFrame(NetexExportContext context, Collection<DayType> dayTypes, Collection<DayTypeAssignment> dayTypeAssignments,
-                                                                  Collection<OperatingPeriod> operatingPeriods) {
+                                                           Collection<OperatingPeriod> operatingPeriods) {
         String frameId = NetexIdProducer.generateId(ServiceCalendarFrame.class, context);
 
         DayTypesInFrame_RelStructure dayTypesStruct = null;
@@ -364,11 +352,11 @@ public class NetexObjectFactory {
         }
 
         return objectFactory.createServiceCalendarFrame()
-                       .withVersion(VERSION_ONE)
-                       .withId(frameId)
-                       .withDayTypes(dayTypesStruct)
-                       .withDayTypeAssignments(dayTypeAssignmentsInFrameRelStructure)
-                       .withOperatingPeriods(operatingPeriodsInFrameRelStructure);
+                .withVersion(VERSION_ONE)
+                .withId(frameId)
+                .withDayTypes(dayTypesStruct)
+                .withDayTypeAssignments(dayTypeAssignmentsInFrameRelStructure)
+                .withOperatingPeriods(operatingPeriodsInFrameRelStructure);
 
     }
 
@@ -376,10 +364,10 @@ public class NetexObjectFactory {
         String availabilityConditionId = NetexIdProducer.generateId(AvailabilityCondition.class, context);
 
         AvailabilityCondition availabilityCondition = objectFactory.createAvailabilityCondition()
-                                                              .withVersion(VERSION_ONE)
-                                                              .withId(availabilityConditionId)
-                                                              .withFromDate(availabilityPeriod.getFrom().atStartOfDay())
-                                                              .withToDate(availabilityPeriod.getTo().atStartOfDay());
+                .withVersion(VERSION_ONE)
+                .withId(availabilityConditionId)
+                .withFromDate(availabilityPeriod.getFrom().atStartOfDay())
+                .withToDate(availabilityPeriod.getTo().atStartOfDay());
 
         return objectFactory.createAvailabilityCondition(availabilityCondition);
     }
@@ -404,8 +392,7 @@ public class NetexObjectFactory {
         }
         TransportSubmodeStructure submodeStructure = new TransportSubmodeStructure();
         switch (submode.getVehicleMode()) {
-            case TROLLEY_BUS:
-            case BUS:
+            case BUS, TROLLEY_BUS:
                 submodeStructure.withBusSubmode(mapEnum(submode, BusSubmodeEnumeration.class));
                 break;
             case COACH:
@@ -439,9 +426,9 @@ public class NetexObjectFactory {
 
     public Codespace createCodespace(String xmlns, String xmlnsUrl) {
         return objectFactory.createCodespace()
-                       .withId(xmlns.toLowerCase())
-                       .withXmlns(xmlns)
-                       .withXmlnsUrl(xmlnsUrl);
+                .withId(xmlns.toLowerCase())
+                .withXmlns(xmlns)
+                .withXmlnsUrl(xmlnsUrl);
     }
 
 

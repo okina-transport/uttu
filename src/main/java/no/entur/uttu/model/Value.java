@@ -15,11 +15,11 @@
 
 package no.entur.uttu.model;
 
-import com.google.common.base.MoreObjects;
+import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,6 +33,7 @@ import java.util.Set;
         sequenceName = "value_seq",
         allocationSize = 10
 )
+@Data
 public class Value implements Serializable {
 
     @Id
@@ -47,9 +48,6 @@ public class Value implements Serializable {
     )
     private Set<String> items = new HashSet<>();
 
-    public Value() {
-    }
-
     public Value(String... items) {
         Collections.addAll(this.items, items);
     }
@@ -58,20 +56,7 @@ public class Value implements Serializable {
         this.items.addAll(items);
     }
 
-    public Set<String> getItems() {
-        return items;
-    }
+    public Value() {
 
-    public void setItems(Set<String> items) {
-        this.items = items;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .omitNullValues()
-                .add("id", id)
-                .add("items", items)
-                .toString();
     }
 }

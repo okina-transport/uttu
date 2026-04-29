@@ -23,34 +23,26 @@ import no.entur.uttu.model.Value;
 import no.entur.uttu.repository.ProviderRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_END_QUAY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_AREA;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_HAIL_AND_RIDE_AREA;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_KEY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_KEY_VALUES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_POLYGON;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_START_QUAY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_TRANSPORT_MODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_VALUES;
+import static no.entur.uttu.graphql.GraphQLNames.*;
 
 @Component
 public class FlexibleStopPlaceMapper extends AbstractGroupOfEntitiesMapper<FlexibleStopPlace> {
 
-    private GeometryMapper geometryMapper;
+    private final GeometryMapper geometryMapper;
 
-    @Autowired
-    private StopPlaceRegistry stopPlaceRegistry;
+    private final StopPlaceRegistry stopPlaceRegistry;
 
-    public FlexibleStopPlaceMapper(ProviderRepository providerRepository, ProviderEntityRepository<FlexibleStopPlace> repository, GeometryMapper geometryMapper) {
+    public FlexibleStopPlaceMapper(ProviderRepository providerRepository, ProviderEntityRepository<FlexibleStopPlace> repository, GeometryMapper geometryMapper, StopPlaceRegistry stopPlaceRegistry) {
         super(providerRepository, repository);
         this.geometryMapper = geometryMapper;
+        this.stopPlaceRegistry = stopPlaceRegistry;
     }
 
     @Override
@@ -61,17 +53,20 @@ public class FlexibleStopPlaceMapper extends AbstractGroupOfEntitiesMapper<Flexi
     @Override
     protected void populateEntityFromInput(FlexibleStopPlace entity, ArgumentWrapper input) {
         input.apply(FIELD_TRANSPORT_MODE, entity::setTransportMode);
-        input.apply(FIELD_FLEXIBLE_AREA, this::mapFlexibleArea, entity::setFlexibleArea);
+        input.apply(FIELD_FLEXIBLE_AREA, this::mapFlexibleAreas, entity::setFlexibleAreas);
         input.apply(FIELD_HAIL_AND_RIDE_AREA, this::mapHailAndRideArea, entity::setHailAndRideArea);
         input.apply(FIELD_KEY_VALUES, this::mapKeyValues, entity::replaceKeyValues);
     }
 
-    protected FlexibleArea mapFlexibleArea(Map<String, Object> inputMap) {
+    protected List<FlexibleArea> mapFlexibleAreas(Map<String, Object> inputMap) {
         ArgumentWrapper input = new ArgumentWrapper(inputMap);
 
         FlexibleArea entity = new FlexibleArea();
         input.apply(FIELD_POLYGON, geometryMapper::createJTSPolygon, entity::setPolygon);
-        return entity;
+
+        List<FlexibleArea> flexibleAreas = new ArrayList<>();
+        flexibleAreas.add(entity);
+        return flexibleAreas;
     }
 
     protected HailAndRideArea mapHailAndRideArea(Map<String, Object> inputMap) {

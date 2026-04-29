@@ -17,34 +17,41 @@ package no.entur.uttu.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static no.entur.uttu.model.ModelTestUtil.assertCheckPersistableFails;
 
-public class FlexibleStopPlaceTest {
+class FlexibleStopPlaceTest {
 
     @Test
-    public void checkPersistable_whenOnlyHailAndRideArea_thenSuccess() {
+    void checkPersistable_whenOnlyHailAndRideArea_thenSuccess() {
         FlexibleStopPlace flexibleStopPlace = new FlexibleStopPlace();
         flexibleStopPlace.setHailAndRideArea(hailAndRideArea("q1", "q2"));
         flexibleStopPlace.checkPersistable();
     }
 
     @Test
-    public void checkPersistable_whenOnlyFlexibleArea_thenSuccess() {
+    void checkPersistable_whenOnlyFlexibleArea_thenSuccess() {
         FlexibleStopPlace flexibleStopPlace = new FlexibleStopPlace();
-        flexibleStopPlace.setFlexibleArea(new FlexibleArea());
+        List<FlexibleArea> flexibleAreas = new ArrayList<>();
+        flexibleAreas.add(new FlexibleArea());
+        flexibleStopPlace.setFlexibleAreas(flexibleAreas);
         flexibleStopPlace.checkPersistable();
     }
 
     @Test
-    public void checkPersistable_whenBothFlexibleAreaAndHailAndRideArea_giveException() {
+    void checkPersistable_whenBothFlexibleAreaAndHailAndRideArea_giveException() {
         FlexibleStopPlace flexibleStopPlace = new FlexibleStopPlace();
-        flexibleStopPlace.setFlexibleArea(new FlexibleArea());
+        List<FlexibleArea> flexibleAreas = new ArrayList<>();
+        flexibleAreas.add(new FlexibleArea());
+        flexibleStopPlace.setFlexibleAreas(flexibleAreas);
         flexibleStopPlace.setHailAndRideArea(hailAndRideArea("q1", "q2"));
         assertCheckPersistableFails(flexibleStopPlace);
     }
 
     @Test
-    public void checkPersistable_whenNeitherFlexibleAreaNorHailAndRideArea_giveException() {
+    void checkPersistable_whenNeitherFlexibleAreaNorHailAndRideArea_giveException() {
         assertCheckPersistableFails(new FlexibleStopPlace());
     }
 

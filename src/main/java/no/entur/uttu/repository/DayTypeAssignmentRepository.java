@@ -15,25 +15,10 @@
 
 package no.entur.uttu.repository;
 
-import no.entur.uttu.model.Codespace;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import no.entur.uttu.model.DayTypeAssignment;
+import no.entur.uttu.repository.generic.IdentifiedRepository;
 import org.springframework.stereotype.Repository;
 
-import jakarta.persistence.EntityManager;
-
 @Repository
-public class CodespaceRepositoryImpl extends SimpleJpaRepository<Codespace, Long> implements CodespaceRepository {
-
-    private final EntityManager entityManager;
-
-    public CodespaceRepositoryImpl(EntityManager entityManager) {
-        super(Codespace.class, entityManager);
-        this.entityManager = entityManager;
-    }
-
-    @Override
-    public Codespace getOneByXmlns(String xmlns) {
-        return entityManager.createQuery("from Codespace where xmlns=:xmlns", Codespace.class).setParameter("xmlns", xmlns).getResultList().stream().findFirst().orElse(null);
-    }
+public interface DayTypeAssignmentRepository extends IdentifiedRepository<DayTypeAssignment> {
 }
-

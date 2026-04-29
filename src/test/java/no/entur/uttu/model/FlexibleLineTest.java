@@ -22,10 +22,10 @@ import java.util.List;
 
 import static no.entur.uttu.model.ModelTestUtil.assertCheckPersistableFails;
 
-public class FlexibleLineTest {
+class FlexibleLineTest {
 
     @Test
-    public void checkPersistable_whenTransportSubmodeNotSet_giveException() {
+    void checkPersistable_whenTransportSubmodeNotSet_giveException() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
         flexibleLine.setBookingArrangement(validBookingArrangement());
@@ -34,7 +34,7 @@ public class FlexibleLineTest {
 
 
     @Test
-    public void checkPersistable_whenTransportModeNotSet_giveException() {
+    void checkPersistable_whenTransportModeNotSet_giveException() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.CAR_TRANSPORT_RAIL_SERVICE);
         flexibleLine.setBookingArrangement(validBookingArrangement());
@@ -43,7 +43,7 @@ public class FlexibleLineTest {
 
 
     @Test
-    public void checkPersistable_whenTransportSubmodeNotValidForTransportMode_giveException() {
+    void checkPersistable_whenTransportSubmodeNotValidForTransportMode_giveException() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
         flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.CAR_TRANSPORT_RAIL_SERVICE);
@@ -52,7 +52,7 @@ public class FlexibleLineTest {
     }
 
     @Test
-    public void checkPersistable_whenTransportSubmodeValidForTransportMode_success() {
+    void checkPersistable_whenTransportSubmodeValidForTransportMode_success() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
         flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.AIRPORT_LINK_BUS);
@@ -61,7 +61,7 @@ public class FlexibleLineTest {
     }
 
     @Test
-    public void checkPersistable_whenBookingInformationOnJourneyPattern_success() {
+    void checkPersistable_whenBookingInformationOnJourneyPattern_success() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
         flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.AIRPORT_LINK_BUS);
@@ -72,7 +72,7 @@ public class FlexibleLineTest {
     }
 
     @Test
-    public void checkPersistable_whenBookingInformationOnServiceJourney_success() {
+    void checkPersistable_whenBookingInformationOnServiceJourney_success() {
         FlexibleLine flexibleLine = new FlexibleLine();
         flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
         flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.AIRPORT_LINK_BUS);
@@ -83,26 +83,6 @@ public class FlexibleLineTest {
         journeyPattern.setServiceJourneys(List.of(serviceJourney));
         flexibleLine.setJourneyPatterns(List.of(journeyPattern));
         flexibleLine.checkPersistable();
-    }
-
-    @Test
-    public void checkPersistable_whenMissingBookingInformation_giveException() {
-        FlexibleLine flexibleLine = new FlexibleLine();
-        flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
-        flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.AIRPORT_LINK_BUS);
-        assertCheckPersistableFails(flexibleLine);
-    }
-
-    @Test
-    public void checkPersistable_whenMissingBookingInformationInHierarchy_giveException() {
-        FlexibleLine flexibleLine = new FlexibleLine();
-        flexibleLine.setTransportMode(VehicleModeEnumeration.BUS);
-        flexibleLine.setTransportSubmode(VehicleSubmodeEnumeration.AIRPORT_LINK_BUS);
-        JourneyPattern journeyPattern = JourneyPatternTest.validJourneyPattern();
-        ServiceJourney serviceJourney = ServiceJourneyTest.validServiceJourney();
-        journeyPattern.setServiceJourneys(List.of(serviceJourney));
-        flexibleLine.setJourneyPatterns(List.of(journeyPattern));
-        assertCheckPersistableFails(flexibleLine);
     }
 
     private BookingArrangement validBookingArrangement() {

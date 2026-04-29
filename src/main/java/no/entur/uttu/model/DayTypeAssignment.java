@@ -15,23 +15,28 @@
 
 package no.entur.uttu.model;
 
-import jakarta.persistence.SequenceGenerator;
-import no.entur.uttu.util.Preconditions;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import no.entur.uttu.util.Preconditions;
+
 import java.time.LocalDate;
 
 
 @Entity
 @SequenceGenerator(
-        name = "day_type_assignment_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "day_type_assignment_seq",
         allocationSize = 10
 )
+@Data
+@EqualsAndHashCode(callSuper = true, of = {"available", "date"})
+@ToString(of = {"available", "date"})
 public class DayTypeAssignment extends IdentifiedEntity {
-
 
     // Whether this period is to be included or excluded. Belongs to DayTypeAssignment in Transmodel. Added here as a simplification.
     private Boolean available;
@@ -40,30 +45,6 @@ public class DayTypeAssignment extends IdentifiedEntity {
 
     @OneToOne(cascade = CascadeType.ALL)
     private OperatingPeriod operatingPeriod;
-
-    public Boolean getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(Boolean available) {
-        this.available = available;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public OperatingPeriod getOperatingPeriod() {
-        return operatingPeriod;
-    }
-
-    public void setOperatingPeriod(OperatingPeriod operatingPeriod) {
-        this.operatingPeriod = operatingPeriod;
-    }
 
 
     @Override
@@ -78,7 +59,7 @@ public class DayTypeAssignment extends IdentifiedEntity {
 
     }
 
-
+    @Override
     public boolean isValid(LocalDate from, LocalDate to) {
         boolean dateValid = false;
         if (date != null) {

@@ -15,13 +15,11 @@
 
 package no.entur.uttu.graphql.fetchers;
 
-import no.entur.uttu.util.Preconditions;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.model.Codespace;
 import no.entur.uttu.repository.CodespaceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +31,11 @@ import static org.rutebanken.helper.organisation.AuthorizationConstants.ROLE_ROU
 @Transactional
 public class CodespaceUpdater implements DataFetcher<Codespace> {
 
-    @Autowired
-    private CodespaceRepository repository;
+    private final CodespaceRepository repository;
+
+    public CodespaceUpdater(CodespaceRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     @PreAuthorize("hasRole('" + ROLE_ROUTE_DATA_ADMIN + "')")
@@ -46,10 +47,7 @@ public class CodespaceUpdater implements DataFetcher<Codespace> {
         if (codespaceXmlns == null) {
             entity = new Codespace();
         } else {
-            entity = repository.getOneByXmlns(codespaceXmlns);
-            if (entity == null) {
-                entity = new Codespace();
-            }
+            entity = repository.findByXmlns(codespaceXmlns).orElse(new Codespace());
         }
 
         populateEntityFromInput(entity, input);

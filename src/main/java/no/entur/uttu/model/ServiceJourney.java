@@ -16,62 +16,50 @@
 package no.entur.uttu.model;
 
 import jakarta.persistence.*;
-import no.entur.uttu.error.codes.ErrorCodeEnumeration;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.error.codederror.CodedError;
+import no.entur.uttu.error.codes.ErrorCodeEnumeration;
 import no.entur.uttu.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static no.entur.uttu.model.Constraints.SERVICE_JOURNEY_UNIQUE_NAME;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = SERVICE_JOURNEY_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
 @SequenceGenerator(
-        name = "service_journey_gen",
+        name = "identified_entity_gen",
         sequenceName = "service_journey_seq",
         allocationSize = 10
 )
-public class ServiceJourney extends GroupOfEntities_VersionStructure {
+@Data
+@EqualsAndHashCode(callSuper = true, of = {"publicCode", "operatorRef"})
+@ToString(callSuper = true, of = {"publicCode", "operatorRef"})
+public class ServiceJourney extends GroupOfEntitiesVersionStructure {
 
-    private String publicCode;
-
-    private String operatorRef;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    private BookingArrangement bookingArrangement;
-
-    @NotNull
-    @ManyToOne
-    private JourneyPattern journeyPattern;
-
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @NotNull
     private final Set<DayType> dayTypes = new HashSet<>();
-
-    @OneToMany(mappedBy = "serviceJourney", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "serviceJourney", orphanRemoval = true)
     @NotNull
     @OrderBy("order")
     private final List<TimetabledPassingTime> passingTimes = new ArrayList<>();
-
+    private String publicCode;
+    private String operatorRef;
+    @OneToOne(cascade = CascadeType.ALL)
+    private BookingArrangement bookingArrangement;
+    @ManyToOne(optional = false)
+    private JourneyPattern journeyPattern;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Notice> notices;
+    private List<Notice> notices = new ArrayList<>();
 
-
-    public JourneyPattern getJourneyPattern() {
-        return journeyPattern;
-    }
-
-    public void setJourneyPattern(JourneyPattern journeyPattern) {
-        this.journeyPattern = journeyPattern;
-    }
-
-    public List<TimetabledPassingTime> getPassingTimes() {
-        return passingTimes;
+    public void addPassingTime(TimetabledPassingTime passingTime) {
+        this.passingTimes.add(passingTime);
+        passingTime.setServiceJourney(this);
     }
 
     public void setPassingTimes(List<TimetabledPassingTime> passingTimes) {
@@ -86,49 +74,12 @@ public class ServiceJourney extends GroupOfEntities_VersionStructure {
         }
     }
 
-    public String getPublicCode() {
-        return publicCode;
-    }
-
-    public void setPublicCode(String publicCode) {
-        this.publicCode = publicCode;
-    }
-
-    public String getOperatorRef() {
-        return operatorRef;
-    }
-
-    public void setOperatorRef(String operatorRef) {
-        this.operatorRef = operatorRef;
-    }
-
-    public BookingArrangement getBookingArrangement() {
-        return bookingArrangement;
-    }
-
-    public void setBookingArrangement(BookingArrangement bookingArrangement) {
-        this.bookingArrangement = bookingArrangement;
-    }
-
-    public Set<DayType> getDayTypes() {
-        return dayTypes;
-    }
-
-    public void updateDayTypes(List<DayType> dayTypes) {
+    public void updateDayTypes(Collection<DayType> dayTypes) {
         this.dayTypes.clear();
         if (dayTypes != null) {
             this.dayTypes.addAll(dayTypes);
         }
     }
-
-    public List<Notice> getNotices() {
-        return notices;
-    }
-
-    public void setNotices(List<Notice> notices) {
-        this.notices = notices;
-    }
-
 
     @Override
     public boolean isValid(LocalDate from, LocalDate to) {

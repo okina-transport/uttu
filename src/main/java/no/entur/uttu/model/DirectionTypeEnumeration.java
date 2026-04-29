@@ -28,10 +28,6 @@ public enum DirectionTypeEnumeration {
         this.value = v;
     }
 
-    public String value() {
-        return this.value;
-    }
-
     public static DirectionTypeEnumeration fromValue(String v) {
         DirectionTypeEnumeration[] var1 = values();
         int var2 = var1.length;
@@ -45,4 +41,20 @@ public enum DirectionTypeEnumeration {
 
         throw new IllegalArgumentException(v);
     }
+
+    public static DirectionTypeEnumeration fromDirectionId(String directionId) {
+        switch (directionId) {
+            case "0":
+                return INBOUND;
+            case "1":
+                return OUTBOUND;
+            default:
+                throw new IllegalArgumentException("Invalid directionId: " + directionId);
+        }
+    }
+
+    public String value() {
+        return this.value;
+    }
+
 }

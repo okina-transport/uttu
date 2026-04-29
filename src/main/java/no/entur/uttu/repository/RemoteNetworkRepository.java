@@ -15,15 +15,20 @@
 
 package no.entur.uttu.repository;
 
-import no.entur.uttu.model.ServiceJourney;
-import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import no.entur.uttu.model.Network;
 
-@Repository
-public interface ServiceJourneyRepository extends ProviderEntityRepository<ServiceJourney> {
+import java.util.List;
+import java.util.Optional;
 
-    @Query(value = "SELECT COUNT(*) FROM service_journey sj JOIN service_journey_day_types sjdt ON :dayTypePk = sjdt.day_types_pk WHERE sjdt.service_journey_pk = sj.pk", nativeQuery = true)
-    long countByDayTypePk(@Param("dayTypePk") Long dayTypePk);
+public interface RemoteNetworkRepository {
+
+    List<Network> syncAndFindAll();
+
+    void deleteAll();
+
+    Network getById(String id);
+
+    Network findByName(String name);
+
+    Optional<Network> findByNetexId(String netexId);
 }

@@ -15,6 +15,8 @@
 
 package no.entur.uttu.export.netex.producer.common;
 
+import jakarta.xml.bind.JAXBElement;
+import lombok.extern.slf4j.Slf4j;
 import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.export.netex.NetexFile;
 import no.entur.uttu.export.netex.producer.NetexIdProducer;
@@ -22,16 +24,13 @@ import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.Ref;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
 import no.entur.uttu.util.ExportUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.rutebanken.netex.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.xml.bind.JAXBElement;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -41,31 +40,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class NetexCommonFileProducer {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Autowired
-    private NetexObjectFactory objectFactory;
-
-    @Autowired
-    private OrganisationProducer organisationProducer;
-
-    @Autowired
-    private FlexibleStopPlaceProducer flexibleStopPlaceProducer;
-
-    @Autowired
-    private ServiceCalendarFrameProducer serviceCalendarFrameProducer;
-
-    @Autowired
-    private NetworkProducer networkProducer;
-
-    @Autowired
-    private StopPlaceRegistry stopPlaceRegistry;
+    private final NetexObjectFactory objectFactory;
+    private final OrganisationProducer organisationProducer;
+    private final FlexibleStopPlaceProducer flexibleStopPlaceProducer;
+    private final ServiceCalendarFrameProducer serviceCalendarFrameProducer;
+    private final NetworkProducer networkProducer;
+    private final StopPlaceRegistry stopPlaceRegistry;
 
     @Value("${export.blob.commonFileFilenameSuffix:_flexible_shared_data}")
     private String commonFileFilenameSuffix;
 
+    public NetexCommonFileProducer(NetexObjectFactory objectFactory, OrganisationProducer organisationProducer, FlexibleStopPlaceProducer flexibleStopPlaceProducer, ServiceCalendarFrameProducer serviceCalendarFrameProducer, NetworkProducer networkProducer, StopPlaceRegistry stopPlaceRegistry) {
+        this.objectFactory = objectFactory;
+        this.organisationProducer = organisationProducer;
+        this.flexibleStopPlaceProducer = flexibleStopPlaceProducer;
+        this.serviceCalendarFrameProducer = serviceCalendarFrameProducer;
+        this.networkProducer = networkProducer;
+        this.stopPlaceRegistry = stopPlaceRegistry;
+    }
 
     public NetexFile toCommonFile(NetexExportContext context) {
         ResourceFrame resourceFrame = createResourceFrame(context);
@@ -101,7 +96,7 @@ public class NetexCommonFileProducer {
         }
         List<String> authoritiesIdList = netexAuthorities.stream()
                 .map(Authority::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         for (Operator netexOperator : netexOperators) {
             if (!authoritiesIdList.contains(netexOperator.getId())) {
@@ -129,7 +124,7 @@ public class NetexCommonFileProducer {
 
         AtomicInteger passengerStopAssignmentOrder = new AtomicInteger(1);
 
-        stopAssignments.addAll(context.quayRefs.stream().map(quayRef -> mapPassengerStopAssignment(quayRef, passengerStopAssignmentOrder.getAndIncrement(), context)).collect(Collectors.toList()));
+        stopAssignments.addAll(context.quayRefs.stream().map(quayRef -> mapPassengerStopAssignment(quayRef, passengerStopAssignmentOrder.getAndIncrement(), context)).toList());
 
         List<Notice> notices = context.notices.stream().map(this::mapNotice).collect(Collectors.toList());
         List<DestinationDisplay> destinationDisplays = context.destinationDisplays.stream().map(this::mapDestinationDisplay).collect(Collectors.toList());
@@ -167,8 +162,8 @@ public class NetexCommonFileProducer {
     private void addLocationToPoint(Point_VersionStructure point, NetexExportContext context) {
         LocationStructure location = new LocationStructure();
         String idToRecover = point.getId()
-                                .replace("RoutePoint", "FlexibleStopPlace")
-                                .replace("ScheduledStopPoint", "FlexibleStopPlace");
+                .replace("RoutePoint", "FlexibleStopPlace")
+                .replace("ScheduledStopPoint", "FlexibleStopPlace");
 
         Optional<no.entur.uttu.model.FlexibleStopPlace> flexibleStopOpt = getStopPlaceWithId(idToRecover, context);
 
@@ -176,7 +171,7 @@ public class NetexCommonFileProducer {
             addLocationFromQuay(point, context);
             return;
         } else if (flexibleStopOpt.isEmpty()) {
-            logger.error("FlexibleStopPlace not found for route:" + point.getId());
+            log.error("FlexibleStopPlace not found for route: {}", point.getId());
             return;
         }
 
@@ -203,15 +198,15 @@ public class NetexCommonFileProducer {
         Optional<String> quayOpt = context.quayRefs.stream()
                 .filter(quay -> quay.equals(quayId)).findFirst();
 
-        if (quayOpt.isEmpty()){
-            logger.error("Unable to found quay:" + quayId);
+        if (quayOpt.isEmpty()) {
+            log.error("Unable to find quay: {}", quayId);
             return;
         }
 
         Optional<StopPlace> stopPlaceOpt = stopPlaceRegistry.getStopPlaceByQuayRef(quayOpt.get());
 
-        if (stopPlaceOpt.isEmpty()){
-            logger.error("Unable to found stopplace for quay id:" + quayOpt.get());
+        if (stopPlaceOpt.isEmpty()) {
+            log.error("Unable to find stopplace for quay id: {}", quayOpt.get());
             return;
         }
 
@@ -220,11 +215,11 @@ public class NetexCommonFileProducer {
         locationOpt.ifPresent(point::setLocation);
     }
 
-    private Optional<LocationStructure> getLocationFromQuay(StopPlace foundStopPlace, String quayId){
+    private Optional<LocationStructure> getLocationFromQuay(StopPlace foundStopPlace, String quayId) {
         LocationStructure location = new LocationStructure();
         for (JAXBElement<?> jaxbElement : foundStopPlace.getQuays().getQuayRefOrQuay()) {
-            Quay quay =  (Quay) jaxbElement.getValue();
-            if (quay.getId().equals(quayId)){
+            Quay quay = (Quay) jaxbElement.getValue();
+            if (quay.getId().equals(quayId)) {
                 SimplePoint_VersionStructure centroid = quay.getCentroid();
                 location.setLatitude(centroid.getLocation().getLatitude());
                 location.setLongitude(centroid.getLocation().getLongitude());
@@ -235,15 +230,15 @@ public class NetexCommonFileProducer {
     }
 
     private Optional<Point> getCentroidFromFlexibleStopPlace(no.entur.uttu.model.FlexibleStopPlace flexibleStop) {
-        no.entur.uttu.model.FlexibleArea area = flexibleStop.getFlexibleArea();
-        if (area == null) {
-            logger.error("null area for flexible stop place:" + flexibleStop.getNetexId());
+        if (CollectionUtils.isEmpty(flexibleStop.getFlexibleAreas())) {
+            log.error("no flexible area(s) for flexible stop place: {}", flexibleStop.getNetexId());
             return Optional.empty();
         }
+        no.entur.uttu.model.FlexibleArea area = flexibleStop.getFlexibleAreas().getFirst();
 
         Polygon polygon = area.getPolygon();
         if (polygon == null) {
-            logger.error("null polygon for flexible stop place:" + flexibleStop.getNetexId());
+            log.error("null polygon for flexible stop place: {}", flexibleStop.getNetexId());
             return Optional.empty();
         }
 

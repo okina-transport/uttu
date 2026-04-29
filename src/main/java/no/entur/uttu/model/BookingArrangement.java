@@ -17,7 +17,9 @@ package no.entur.uttu.model;
 
 
 import jakarta.persistence.*;
-import no.entur.uttu.util.Preconditions;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -25,10 +27,13 @@ import java.util.List;
 
 @Entity
 @SequenceGenerator(
-        name = "booking_arrangement_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "booking_arrangement_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true, of = {"latestBookingTime", "minimumBookingPeriod", "bookingNote", "bookingMethods", "bookingAccess", "bookWhen", "buyWhen"})
+@ToString(callSuper = true, of = {"latestBookingTime", "minimumBookingPeriod", "bookingNote", "bookingMethods", "bookingAccess", "bookWhen", "buyWhen"})
+@Data
 public class BookingArrangement extends IdentifiedEntity {
 
     private LocalTime latestBookingTime;
@@ -49,99 +54,4 @@ public class BookingArrangement extends IdentifiedEntity {
 
     @OneToOne(cascade = CascadeType.ALL)
     private Contact bookingContact;
-
-    public LocalTime getLatestBookingTime() {
-        return latestBookingTime;
-    }
-
-    public void setLatestBookingTime(LocalTime latestBookingTime) {
-        this.latestBookingTime = latestBookingTime;
-    }
-
-    public String getBookingNote() {
-        return bookingNote;
-    }
-
-    public void setBookingNote(String bookingNote) {
-        this.bookingNote = bookingNote;
-    }
-
-    public Contact getBookingContact() {
-        return bookingContact;
-    }
-
-    public void setBookingContact(Contact bookingContact) {
-        this.bookingContact = bookingContact;
-    }
-
-    public Duration getMinimumBookingPeriod() {
-        return minimumBookingPeriod;
-    }
-
-    public void setMinimumBookingPeriod(Duration minimumBookingPeriod) {
-        this.minimumBookingPeriod = minimumBookingPeriod;
-    }
-
-    public List<BookingMethodEnumeration> getBookingMethods() {
-        return bookingMethods;
-    }
-
-    public void setBookingMethods(List<BookingMethodEnumeration> bookingMethods) {
-        this.bookingMethods = bookingMethods;
-    }
-
-    public BookingAccessEnumeration getBookingAccess() {
-        return bookingAccess;
-    }
-
-    public void setBookingAccess(BookingAccessEnumeration bookingAccess) {
-        this.bookingAccess = bookingAccess;
-    }
-
-    public PurchaseWhenEnumeration getBookWhen() {
-        return bookWhen;
-    }
-
-    public void setBookWhen(PurchaseWhenEnumeration bookWhen) {
-        this.bookWhen = bookWhen;
-    }
-
-    public List<PurchaseMomentEnumeration> getBuyWhen() {
-        return buyWhen;
-    }
-
-    public void setBuyWhen(List<PurchaseMomentEnumeration> buyWhen) {
-        this.buyWhen = buyWhen;
-    }
-
-    @Override
-    public void checkPersistable() {
-        super.checkPersistable();
-
-        // notExist(BookWhen xor LatestBookingTime)
-        Preconditions.checkArgument(
-                getLatestBookingTime() == null || getBookWhen() != null,
-                "%s booking information must have BookWhen when LatestBookingTime is defined",
-                this
-        );
-        Preconditions.checkArgument(
-                getBookWhen() == null || getLatestBookingTime() != null,
-                "%s booking information must have LatestBookingTime when BookWhen is defined",
-                this
-        );
-
-        Preconditions.checkArgument(
-                // notExist(BookWhen and MinimumBookingPeriod)
-                getMinimumBookingPeriod() == null || getBookWhen() == null,
-                "%s booking information can't have BookWhen when MinimumBookingPeriod is defined",
-                this
-        );
-
-        Preconditions.checkArgument(
-                // notExist( not(BookWhen) and not(MinimumBookingPeriod))
-                getBookWhen() != null || getMinimumBookingPeriod() != null,
-                "%s booking information must have BookWhen or MinimumBookingPeriod",
-                this
-        );
-    }
 }

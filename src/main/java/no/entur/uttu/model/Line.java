@@ -16,6 +16,9 @@
 package no.entur.uttu.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.util.Preconditions;
 
 import javax.validation.constraints.NotNull;
@@ -27,55 +30,36 @@ import java.util.Objects;
 import static no.entur.uttu.model.Constraints.LINE_UNIQUE_NAME;
 
 @Entity
-@Inheritance(strategy= InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.JOINED)
 @Table(uniqueConstraints = {@UniqueConstraint(name = LINE_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
 @SequenceGenerator(
-        name = "line_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "line_seq",
         allocationSize = 10
 )
-public abstract class Line extends GroupOfEntities_VersionStructure {
+@Data
+@EqualsAndHashCode(callSuper = true, of = {"publicCode", "transportMode", "transportSubmode", "operatorRef"})
+@ToString(callSuper = true, of = {"publicCode", "transportMode", "transportSubmode", "operatorRef"})
+public abstract class Line extends GroupOfEntitiesVersionStructure {
 
+    @OneToMany(mappedBy = "line", orphanRemoval = true)
+    private final List<JourneyPattern> journeyPatterns = new ArrayList<>();
     private String publicCode;
-
     @Enumerated(EnumType.STRING)
     @NotNull
     private VehicleModeEnumeration transportMode;
-
     @Enumerated(EnumType.STRING)
     @NotNull
     private VehicleSubmodeEnumeration transportSubmode;
-
-    @NotNull
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Network network;
-
     private String operatorRef;
-
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Notice> notices;
+    private List<Notice> notices = new ArrayList<>();
 
-    @OneToMany(mappedBy = "line", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<JourneyPattern> journeyPatterns = new ArrayList<>();
-
-    public String getPublicCode() {
-        return publicCode;
-    }
-
-    public void setPublicCode(String publicCode) {
-        this.publicCode = publicCode;
-    }
-
-    public VehicleModeEnumeration getTransportMode() {
-        return transportMode;
-    }
-
-    public void setTransportMode(VehicleModeEnumeration transportMode) {
-        this.transportMode = transportMode;
-    }
-
-    public List<JourneyPattern> getJourneyPatterns() {
-        return journeyPatterns;
+    public void addJourneyPattern(JourneyPattern journeyPattern) {
+        this.journeyPatterns.add(journeyPattern);
+        journeyPattern.setLine(this);
     }
 
     public void setJourneyPatterns(List<JourneyPattern> journeyPatterns) {
@@ -84,38 +68,6 @@ public abstract class Line extends GroupOfEntities_VersionStructure {
             journeyPatterns.stream().forEach(jp -> jp.setLine(this));
             this.journeyPatterns.addAll(journeyPatterns);
         }
-    }
-
-    public Network getNetwork() {
-        return network;
-    }
-
-    public void setNetwork(Network network) {
-        this.network = network;
-    }
-
-    public String getOperatorRef() {
-        return operatorRef;
-    }
-
-    public void setOperatorRef(String operatorRef) {
-        this.operatorRef = operatorRef;
-    }
-
-    public List<Notice> getNotices() {
-        return notices;
-    }
-
-    public void setNotices(List<Notice> notices) {
-        this.notices = notices;
-    }
-
-    public VehicleSubmodeEnumeration getTransportSubmode() {
-        return transportSubmode;
-    }
-
-    public void setTransportSubmode(VehicleSubmodeEnumeration transportSubmode) {
-        this.transportSubmode = transportSubmode;
     }
 
     @Override
@@ -131,9 +83,9 @@ public abstract class Line extends GroupOfEntities_VersionStructure {
         Preconditions.checkArgument(transportSubmode != null, "% transportSubmode not set", identity());
         Preconditions.checkArgument(Objects.equals(transportMode, transportSubmode.getVehicleMode()), "%s transportSubmode %s is valid for transportMode %s", identity(), transportSubmode.value(), transportMode.value());
 
-        getJourneyPatterns().stream().forEach(ProviderEntity::checkPersistable);
+        getJourneyPatterns().forEach(ProviderEntity::checkPersistable);
         if (getNotices() != null) {
-            getNotices().stream().forEach(IdentifiedEntity::checkPersistable);
+            getNotices().forEach(IdentifiedEntity::checkPersistable);
         }
     }
 

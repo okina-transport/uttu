@@ -1,20 +1,16 @@
 package no.entur.uttu.repository;
 
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import no.entur.uttu.config.Context;
-import no.entur.uttu.config.NetexHttpMessageConverter;
-import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.security.TokenService;
-
-
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.rutebanken.netex.model.GeneralOrganisation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.http.HttpEntity;
@@ -25,34 +21,26 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class NetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> implements NetworkRepository {
+public class RemoteNetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> implements RemoteNetworkRepository {
 
-    private static final Logger log = LoggerFactory.getLogger(NetworkRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RemoteNetworkRepositoryImpl.class);
 
     private final EntityManager entityManager;
-    private RestTemplate restTemplate = createRestTemplate();
-
+    private final RestTemplate restTemplate = createRestTemplate();
+    private final TokenService tokenService;
     @Value("${network.registry.url}")
     private String networkRegistryUrl;
 
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private CompanyRegistry companyRegistry;
-
-
-    public NetworkRepositoryImpl(EntityManager entityManager) {
+    public RemoteNetworkRepositoryImpl(EntityManager entityManager, TokenService tokenService) {
         super(Network.class, entityManager);
         this.entityManager = entityManager;
+        this.tokenService = tokenService;
     }
 
 
@@ -65,17 +53,19 @@ public class NetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> im
     @Override
     public List<Network> syncAndFindAll() {
         String providerCode = Context.getVerifiedProviderCode();
-        ResponseEntity<List> rateResponse = restTemplate.exchange(
-                networkRegistryUrl,
-                HttpMethod.GET,
-                getEntityWithAuthenticationToken(providerCode),
-                List.class);
-
-        List<Network> networks = buildNetworkListFromResponse(rateResponse);
-        updateNetworksInDB(networks);
+        try {
+            ResponseEntity<List> rateResponse = restTemplate.exchange(
+                    networkRegistryUrl,
+                    HttpMethod.GET,
+                    getEntityWithAuthenticationToken(providerCode),
+                    List.class);
+            List<Network> networks = buildNetworkListFromResponse(rateResponse);
+            updateNetworksInDB(networks);
+        } catch (Exception e) {
+            log.error("Error on network sync", e);
+        }
 
         return entityManager.createQuery("from Network e where e.provider.code=:providerCode", Network.class).setParameter("providerCode", providerCode).getResultList();
-
     }
 
 
@@ -96,7 +86,7 @@ public class NetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> im
                         .setParameter("name", newNetwork.getName())
                         .getSingleResult();
             } catch (NoResultException e) {
-                log.info("No network found for provider code: " + providerCode + " and name: " + newNetwork.getName() + ".Creating new one");
+                log.info("No network found for provider code: {} and name: {}. Creating new one", providerCode, newNetwork.getName());
             }
 
 
@@ -146,6 +136,12 @@ public class NetworkRepositoryImpl extends SimpleJpaRepository<Network, Long> im
     @Override
     public Network findByName(String name) {
         return entityManager.createQuery("from Network where name=:name", Network.class).setParameter("name", name).getResultList().stream().findFirst().orElse(null);
+    }
+
+    @Override
+    public Optional<Network> findByNetexId(String netexId) {
+        return entityManager.createQuery("from Network where netexId=:netexId", Network.class).setParameter("netexId"
+                , netexId).getResultList().stream().findFirst();
     }
 
     private HttpEntity<String> getEntityWithAuthenticationToken(String referential) {

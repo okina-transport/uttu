@@ -15,26 +15,16 @@
 
 package no.entur.uttu.graphql;
 
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLNonNull;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
+import jakarta.annotation.PostConstruct;
 import no.entur.uttu.graphql.scalars.DateTimeScalar;
 import no.entur.uttu.graphql.scalars.ProviderCodeScalar;
 import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.repository.CodespaceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-
 import java.util.List;
-
-import static graphql.Scalars.GraphQLID;
 
 import static graphql.Scalars.GraphQLString;
 import static graphql.scalars.ExtendedScalars.GraphQLLong;
@@ -50,26 +40,23 @@ import static no.entur.uttu.graphql.GraphQLNames.*;
 @Component
 public class ProviderGraphQLSchema {
 
-    @Autowired
-    private CodespaceRepository codespaceRepository;
-
-    @Autowired
-    private DataFetcher<Codespace> codespaceUpdater;
-
-    @Autowired
-    private DataFetcher<Provider> providerUpdater;
-
-    @Autowired
-    private DataFetcher<List<Provider>> providerFetcher;
-
-    @Autowired
-    private DateTimeScalar dateTimeScalar;
-
+    private final CodespaceRepository codespaceRepository;
+    private final DataFetcher<Codespace> codespaceUpdater;
+    private final DataFetcher<Provider> providerUpdater;
+    private final DataFetcher<List<Provider>> providerFetcher;
+    private final DateTimeScalar dateTimeScalar;
     public GraphQLSchema graphQLSchema;
-
     private GraphQLObjectType identifiedEntityObjectType;
     private GraphQLObjectType codespaceObjectType;
     private GraphQLObjectType providerObjectType;
+
+    public ProviderGraphQLSchema(CodespaceRepository codespaceRepository, DataFetcher<Codespace> codespaceUpdater, DataFetcher<Provider> providerUpdater, DataFetcher<List<Provider>> providerFetcher, DateTimeScalar dateTimeScalar) {
+        this.codespaceRepository = codespaceRepository;
+        this.codespaceUpdater = codespaceUpdater;
+        this.providerUpdater = providerUpdater;
+        this.providerFetcher = providerFetcher;
+        this.dateTimeScalar = dateTimeScalar;
+    }
 
     @PostConstruct
     public void init() {
@@ -103,8 +90,7 @@ public class ProviderGraphQLSchema {
     }
 
     private GraphQLObjectType createQueryObject() {
-
-        GraphQLObjectType queryType = newObject()
+        return newObject()
                 .name("Queries")
                 .description("Query and search for data")
                 .field(newFieldDefinition()
@@ -118,8 +104,6 @@ public class ProviderGraphQLSchema {
                         .description("Search for Providers")
                         .dataFetcher(providerFetcher))
                 .build();
-
-        return queryType;
     }
 
     private GraphQLObjectType createMutationObject() {
@@ -144,13 +128,13 @@ public class ProviderGraphQLSchema {
                 .field(newInputObjectField().name(FIELD_CODE_SPACE_XMLNS).type(new GraphQLNonNull(GraphQLString)))
                 .build();
 
-        GraphQLObjectType mutationType = newObject()
+        return newObject()
                 .name("Mutations")
                 .description("Create and edit Provider data")
                 .field(newFieldDefinition()
                         .type(new GraphQLNonNull(codespaceObjectType))
                         .name("mutateCodespace")
-                        .description("Create new or update existing Codespace")
+                        .description("Create new or persistUpdate existing Codespace")
                         .argument(GraphQLArgument.newArgument()
                                 .name(FIELD_INPUT)
                                 .type(codespaceInputType))
@@ -158,14 +142,12 @@ public class ProviderGraphQLSchema {
                 .field(newFieldDefinition()
                         .type(new GraphQLNonNull(providerObjectType))
                         .name("mutateProvider")
-                        .description("Create new or update existing Provider")
+                        .description("Create new or persistUpdate existing Provider")
                         .argument(GraphQLArgument.newArgument()
                                 .name(FIELD_INPUT)
                                 .type(providerInputType))
                         .dataFetcher(providerUpdater))
 
                 .build();
-
-        return mutationType;
     }
 }

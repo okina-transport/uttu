@@ -17,25 +17,21 @@ package no.entur.uttu.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotNull;
 
 @Entity
 @SequenceGenerator(
-        name = "destination_display_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "destination_display_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class DestinationDisplay extends ProviderEntity {
 
     @NotNull
     private String frontText;
-
-    public String getFrontText() {
-        return frontText;
-    }
-
-    public void setFrontText(String frontText) {
-        this.frontText = frontText;
-    }
 }

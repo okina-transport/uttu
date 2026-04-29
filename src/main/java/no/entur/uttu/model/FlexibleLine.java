@@ -15,18 +15,17 @@
 
 package no.entur.uttu.model;
 
-import no.entur.uttu.error.codederror.CodedError;
-import no.entur.uttu.error.codes.ErrorCodeEnumeration;
-import no.entur.uttu.util.Preconditions;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true, of = "flexibleLineType")
+@ToString(callSuper = true, of = "flexibleLineType")
 public class FlexibleLine extends Line {
 
     @Enumerated(EnumType.STRING)
@@ -35,22 +34,6 @@ public class FlexibleLine extends Line {
 
     @OneToOne(cascade = CascadeType.ALL)
     private BookingArrangement bookingArrangement;
-
-    public FlexibleLineTypeEnumeration getFlexibleLineType() {
-        return flexibleLineType;
-    }
-
-    public void setFlexibleLineType(FlexibleLineTypeEnumeration flexibleLineType) {
-        this.flexibleLineType = flexibleLineType;
-    }
-
-    public BookingArrangement getBookingArrangement() {
-        return bookingArrangement;
-    }
-
-    public void setBookingArrangement(BookingArrangement bookingArrangement) {
-        this.bookingArrangement = bookingArrangement;
-    }
 
     @Override
     public void accept(LineVisitor lineVisitor) {
@@ -61,20 +44,7 @@ public class FlexibleLine extends Line {
     public void checkPersistable() {
         super.checkPersistable();
 
-        Preconditions.checkArgument(bookingInformationPresentInHierarchy(),
-                CodedError.fromErrorCode(ErrorCodeEnumeration.FLEXIBLE_LINE_REQUIRES_BOOKING),
-                "%s requires booking information on line, journey pattern or service journey", identity());
-
         validateBookingInformations();
-    }
-
-    private boolean bookingInformationPresentInHierarchy() {
-        return this.bookingArrangement != null ||
-                this.getJourneyPatterns().stream().anyMatch(jp ->
-                        jp.getPointsInSequence().stream().anyMatch(point -> point.getBookingArrangement() != null) ||
-                                jp.getServiceJourneys().stream().anyMatch(sj -> sj.getBookingArrangement() != null)
-                );
-
     }
 
     private void validateBookingInformations() {

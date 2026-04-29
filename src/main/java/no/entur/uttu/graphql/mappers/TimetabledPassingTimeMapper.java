@@ -25,7 +25,7 @@ import static no.entur.uttu.graphql.GraphQLNames.*;
 
 @Component
 public class TimetabledPassingTimeMapper extends AbstractProviderEntityMapper<TimetabledPassingTime> {
-    private NoticeMapper noticeMapper;
+    private final NoticeMapper noticeMapper;
 
     public TimetabledPassingTimeMapper(ProviderRepository providerRepository, ProviderEntityRepository<TimetabledPassingTime> entityRepository, NoticeMapper noticeMapper) {
         super(providerRepository, entityRepository);

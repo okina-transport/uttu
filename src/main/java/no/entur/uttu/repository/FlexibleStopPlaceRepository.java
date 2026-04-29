@@ -17,6 +17,8 @@ package no.entur.uttu.repository;
 
 import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface FlexibleStopPlaceRepository extends ProviderEntityRepository<FlexibleStopPlace> {
 }

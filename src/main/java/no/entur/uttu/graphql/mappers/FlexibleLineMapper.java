@@ -18,19 +18,20 @@ package no.entur.uttu.graphql.mappers;
 import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.graphql.GraphQLNames;
 import no.entur.uttu.model.FlexibleLine;
+import no.entur.uttu.repository.CompanyRegistry;
 import no.entur.uttu.repository.ProviderRepository;
+import no.entur.uttu.repository.RemoteNetworkRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FlexibleLineMapper extends LineMapper<FlexibleLine> {
 
-    @Autowired
-    private BookingArrangementMapper bookingArrangementMapper;
+    private final BookingArrangementMapper bookingArrangementMapper;
 
-    public FlexibleLineMapper(ProviderRepository providerRepository, ProviderEntityRepository<FlexibleLine> repository) {
-        super(providerRepository, repository);
+    public FlexibleLineMapper(ProviderRepository providerRepository, ProviderEntityRepository<FlexibleLine> repository, RemoteNetworkRepository networkRepository, JourneyPatternMapper journeyPatternMapper, NoticeMapper noticeMapper, CompanyRegistry companyRegistry, BookingArrangementMapper bookingArrangementMapper) {
+        super(providerRepository, repository, networkRepository, journeyPatternMapper, noticeMapper, companyRegistry);
+        this.bookingArrangementMapper = bookingArrangementMapper;
     }
 
     @Override

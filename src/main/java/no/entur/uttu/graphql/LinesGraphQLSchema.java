@@ -17,43 +17,19 @@ package no.entur.uttu.graphql;
 
 import graphql.Scalars;
 import graphql.schema.*;
+import jakarta.annotation.PostConstruct;
 import no.entur.uttu.config.Context;
 import no.entur.uttu.export.linestatistics.ExportedLineStatisticsService;
 import no.entur.uttu.graphql.fetchers.DayTypeServiceJourneyCountFetcher;
 import no.entur.uttu.graphql.fetchers.ExportedPublicLinesFetcher;
-import no.entur.uttu.graphql.scalars.DateScalar;
-import no.entur.uttu.graphql.scalars.DateTimeScalar;
-import no.entur.uttu.graphql.scalars.DurationScalar;
-import no.entur.uttu.graphql.scalars.GeoJSONCoordinatesScalar;
-import no.entur.uttu.graphql.scalars.LocalTimeScalar;
-import no.entur.uttu.model.BookingAccessEnumeration;
-import no.entur.uttu.model.BookingMethodEnumeration;
-import no.entur.uttu.model.DayType;
-import no.entur.uttu.model.DayTypeAssignment;
-import no.entur.uttu.model.DirectionTypeEnumeration;
-import no.entur.uttu.model.ExportedLineStatistics;
-import no.entur.uttu.model.FixedLine;
-import no.entur.uttu.model.FlexibleArea;
-import no.entur.uttu.model.FlexibleLine;
-import no.entur.uttu.model.FlexibleLineTypeEnumeration;
-import no.entur.uttu.model.FlexibleStopPlace;
-import no.entur.uttu.model.ProviderEntity;
-import no.entur.uttu.model.PurchaseMomentEnumeration;
-import no.entur.uttu.model.PurchaseWhenEnumeration;
-import no.entur.uttu.model.TimetabledPassingTime;
-import no.entur.uttu.model.VehicleModeEnumeration;
-import no.entur.uttu.model.VehicleSubmodeEnumeration;
+import no.entur.uttu.graphql.scalars.*;
+import no.entur.uttu.model.*;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.model.job.JobStatus;
 import no.entur.uttu.model.job.SeverityEnumeration;
 import no.entur.uttu.profile.Profile;
-import no.entur.uttu.repository.DataSpaceCleaner;
-import no.entur.uttu.repository.DayTypeRepository;
-import no.entur.uttu.repository.ExportRepository;
-import no.entur.uttu.repository.FixedLineRepository;
-import no.entur.uttu.repository.FlexibleLineRepository;
-import no.entur.uttu.repository.FlexibleStopPlaceRepository;
-import no.entur.uttu.repository.NetworkRepository;
+import no.entur.uttu.repository.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.rutebanken.netex.model.GeneralOrganisation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +37,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -71,175 +46,98 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static graphql.Scalars.GraphQLBoolean;
-import static graphql.Scalars.GraphQLID;
-import static graphql.Scalars.GraphQLInt;
-
-import static graphql.Scalars.GraphQLString;
+import static graphql.Scalars.*;
 import static graphql.scalars.ExtendedScalars.GraphQLLong;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
 import static graphql.schema.GraphQLInputObjectType.newInputObject;
 import static graphql.schema.GraphQLObjectType.newObject;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_ARRIVAL_DAY_OFFSET;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_ARRIVAL_TIME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_AUTHORITY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_ACCESS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_ARRANGEMENT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_CONTACT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_METHODS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_NOTE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOK_WHEN;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BUY_WHEN;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CHANGED;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CHANGED_BY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CONTACT_PERSON;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CREATED;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CREATED_BY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DATE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DAYS_OF_WEEK;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DAY_TYPES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DAY_TYPES_REFS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DAY_TYPE_ASSIGNMENTS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DAY_TYPE_NETEX_ID;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DEPARTURE_DAY_OFFSET;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DEPARTURE_TIME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DESCRIPTION;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DESTINATION_DISPLAY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DIRECTION_TYPE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DOWNLOAD_URL;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DRY_RUN;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EARLIEST_DEPARTURE_DAY_OFFSET;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EARLIEST_DEPARTURE_TIME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EMAIL;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_END_QUAY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EXPORTED_DAY_TYPES_STATISTICS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EXPORT_LINE_ASSOCIATIONS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_EXPORT_STATUS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_AREA;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_LINE_TYPE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_STOP_PLACE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_STOP_PLACE_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FOR_ALIGHTING;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FOR_BOARDING;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FROM_DATE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FRONT_TEXT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FURTHER_DETAILS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_HAIL_AND_RIDE_AREA;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_ID;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_IDS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_INPUT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_IS_AVAILABLE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_JOURNEY_PATTERNS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_KEY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_KEY_VALUES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LATEST_ARRIVAL_DAY_OFFSET;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LATEST_ARRIVAL_TIME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LATEST_BOOKING_TIME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LINE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LINES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LINE_NAME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_LINE_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_MESSAGE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_MESSAGES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_MINIMUM_BOOKING_PERIOD;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NAME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NETWORK;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NETWORK_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NOTICES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NUMBER_OF_SERVICE_JOURNEYS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_OPERATING_DATE_FROM;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_OPERATING_DATE_TO;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_OPERATING_PERIOD;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_OPERATOR_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PASSING_TIMES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PHONE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_POINTS_IN_SEQUENCE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_POLYGON;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PRIVATE_CODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PROVIDER_CODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PUBLIC_CODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_PUBLIC_LINES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_QUAY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_SERVICE_JOURNEYS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_SERVICE_JOURNEY_NAME;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_SEVERITY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_START_DATE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_START_QUAY_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_TEXT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_TO_DATE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_TRANSPORT_MODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_TRANSPORT_SUBMODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_URL;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_VALUES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_VERSION;
+import static no.entur.uttu.graphql.GraphQLNames.*;
 
 /**
  * GraphQL schema for FlexibleLines and related entities.
  */
 @Component
 public class LinesGraphQLSchema {
+    private final GraphQLEnumType geometryTypeEnum = GraphQLEnumType.newEnum()
+            .name("GeometryType")
+            .value("Point")
+            .value("LineString")
+            .value("Polygon")
+            .value("MultiPoint")
+            .value("MultiLineString")
+            .value("MultiPolygon")
+            .value("GeometryCollection")
+            .build();
+    private final GraphQLEnumType dayOfWeekEnum = createEnum("DayOfWeekEnumeration", DayOfWeek.values(), (t -> t.name().toLowerCase()));
+    private final GraphQLEnumType exportStatusEnum = createEnum("ExportStatusEnumeration", JobStatus.values(), (t -> t.name().toLowerCase()));
+    private final GraphQLEnumType severityEnum = createEnum("SeverityEnumeration", SeverityEnumeration.values(), (t -> t.name().toLowerCase()));
+    private final GraphQLEnumType flexibleLineTypeEnum = createEnum("FlexibleLineTypeEnumeration", FlexibleLineTypeEnumeration.values(), (FlexibleLineTypeEnumeration::value));
+    private final GraphQLEnumType bookingMethodEnum = createEnum("BookingMethodEnumeration", BookingMethodEnumeration.values(), (BookingMethodEnumeration::value));
+    private final GraphQLEnumType bookingAccessEnum = createEnum("BookingAccessEnumeration", BookingAccessEnumeration.values(), (BookingAccessEnumeration::value));
+    private final GraphQLEnumType purchaseWhenEnum = createEnum("PurchaseWhenEnumeration", PurchaseWhenEnumeration.values(), (PurchaseWhenEnumeration::value));
+    private final GraphQLEnumType purchaseMomentEnum = createEnum("PurchaseMomentEnumeration", PurchaseMomentEnumeration.values(), (PurchaseMomentEnumeration::value));
+    private final GraphQLEnumType directionTypeEnum = createEnum("DirectionTypeEnumeration", DirectionTypeEnumeration.values(), (DirectionTypeEnumeration::value));
     @Autowired
     private DateTimeScalar dateTimeScalar;
-
     @Autowired
     private DataFetcher<Export> exportUpdater;
-
     @Autowired
     private DataFetcher<FlexibleStopPlace> flexibleStopPlaceUpdater;
-
     @Autowired
     private DataFetcher<FlexibleLine> flexibleLineUpdater;
-
     @Autowired
     private DataFetcher<FixedLine> fixedLineUpdater;
-
     @Autowired
     private DataFetcher<DayType> dayTypeUpdater;
-
     @Autowired
     private DataFetcher<List<DayType>> dayTypesBulkUpdater;
-
     @Autowired
     private DayTypeServiceJourneyCountFetcher dayTypeServiceJourneyCountFetcher;
-
     @Autowired
     private FlexibleStopPlaceRepository flexibleStopPlaceRepository;
-
     @Autowired
-    private NetworkRepository networkRepository;
-
+    private RemoteNetworkRepository networkRepository;
     @Autowired
     private ExportRepository exportRepository;
-
     @Autowired
     private ExportedLineStatisticsService exportedLineStatisticsService;
-
     @Autowired
     private FlexibleLineRepository flexibleLineRepository;
-
     @Autowired
     private FixedLineRepository fixedLineRepository;
-
     @Autowired
     private DataSpaceCleaner dataSpaceCleaner;
-
     @Autowired
     private Profile profile;
-
     @Autowired
     private DayTypeRepository dayTypeRepository;
-
     @Autowired
     @Qualifier("organisationsFetcher")
     private DataFetcher<List<GeneralOrganisation>> organisationsFetcher;
-
     @Autowired
     @Qualifier("companiesFetcher")
     private DataFetcher<List<GeneralOrganisation>> companiesFetcher;
-
     @Autowired
     private DataFetcher<TimetabledPassingTime.StopPlace> quayRefSearchFetcher;
+    private GraphQLEnumType vehicleModeEnum;
+    private GraphQLEnumType vehicleSubmodeEnum;
+    private GraphQLObjectType lineObjectType;
+    private GraphQLObjectType fixedLineObjectType;
+    private GraphQLObjectType flexibleLineObjectType;
+    private GraphQLObjectType dayTypeObjectType;
+    private GraphQLObjectType flexibleStopPlaceObjectType;
+    private GraphQLObjectType networkObjectType;
+    private GraphQLObjectType exportObjectType;
+    private GraphQLObjectType exportedLineStatisticsObjectType;
+    private GraphQLObjectType stopPlaceObjectType;
+    private GraphQLObjectType organisationObjectType;
+    private GraphQLArgument idArgument;
+    private GraphQLArgument idsArgument;
+    private GraphQLArgument providerArgument;
+    private GraphQLSchema graphQLSchema;
+    private GraphQLCodeRegistry codeRegistry;
+    private GraphQLObjectType identifiedEntityObjectType;
 
     private <T extends Enum> GraphQLEnumType createEnum(String name, T[] values, Function<T, String> mapping) {
         return createEnum(name, Arrays.asList(values), mapping);
@@ -250,50 +148,6 @@ public class LinesGraphQLSchema {
         values.forEach(type -> enumBuilder.value(mapping.apply(type), type));
         return enumBuilder.build();
     }
-
-    private GraphQLEnumType geometryTypeEnum = GraphQLEnumType.newEnum()
-            .name("GeometryType")
-            .value("Point")
-            .value("LineString")
-            .value("Polygon")
-            .value("MultiPoint")
-            .value("MultiLineString")
-            .value("MultiPolygon")
-            .value("GeometryCollection")
-            .build();
-
-    private GraphQLEnumType dayOfWeekEnum = createEnum("DayOfWeekEnumeration", DayOfWeek.values(), (t -> t.name().toLowerCase()));
-    private GraphQLEnumType exportStatusEnum = createEnum("ExportStatusEnumeration", JobStatus.values(), (t -> t.name().toLowerCase()));
-    private GraphQLEnumType severityEnum = createEnum("SeverityEnumeration", SeverityEnumeration.values(), (t -> t.name().toLowerCase()));
-
-    private GraphQLEnumType vehicleModeEnum;
-    private GraphQLEnumType vehicleSubmodeEnum;
-    private GraphQLEnumType flexibleLineTypeEnum = createEnum("FlexibleLineTypeEnumeration", FlexibleLineTypeEnumeration.values(), (FlexibleLineTypeEnumeration::value));
-    private GraphQLEnumType bookingMethodEnum = createEnum("BookingMethodEnumeration", BookingMethodEnumeration.values(), (BookingMethodEnumeration::value));
-    private GraphQLEnumType bookingAccessEnum = createEnum("BookingAccessEnumeration", BookingAccessEnumeration.values(), (BookingAccessEnumeration::value));
-    private GraphQLEnumType purchaseWhenEnum = createEnum("PurchaseWhenEnumeration", PurchaseWhenEnumeration.values(), (PurchaseWhenEnumeration::value));
-    private GraphQLEnumType purchaseMomentEnum = createEnum("PurchaseMomentEnumeration", PurchaseMomentEnumeration.values(), (PurchaseMomentEnumeration::value));
-    private GraphQLEnumType directionTypeEnum = createEnum("DirectionTypeEnumeration", DirectionTypeEnumeration.values(), (DirectionTypeEnumeration::value));
-
-    private GraphQLObjectType lineObjectType;
-    private GraphQLObjectType fixedLineObjectType;
-    private GraphQLObjectType flexibleLineObjectType;
-    private GraphQLObjectType dayTypeObjectType;
-    private GraphQLObjectType flexibleStopPlaceObjectType;
-    private GraphQLObjectType networkObjectType;
-    private GraphQLObjectType exportObjectType;
-    private GraphQLObjectType exportedLineStatisticsObjectType;
-
-    private GraphQLObjectType stopPlaceObjectType;
-
-    private GraphQLObjectType organisationObjectType;
-
-    private GraphQLArgument idArgument;
-    private GraphQLArgument idsArgument;
-    private GraphQLArgument providerArgument;
-    private GraphQLSchema graphQLSchema;
-    private GraphQLCodeRegistry codeRegistry;
-    private GraphQLObjectType identifiedEntityObjectType;
 
     @PostConstruct
     public void init() {
@@ -378,7 +232,6 @@ public class LinesGraphQLSchema {
                 .build();
 
 
-
         List<String> identifiedEntityTypes = List.of(
                 "StopPointInJourneyPattern",
                 "ServiceJourney",
@@ -402,7 +255,6 @@ public class LinesGraphQLSchema {
         }
 
         codeRegistry = cr.build();
-
 
 
         GraphQLObjectType groupOfEntitiesObjectType = newObject(identifiedEntityObjectType).name("GroupOfEntities")
@@ -452,15 +304,7 @@ public class LinesGraphQLSchema {
                 .field(newFieldDefinition().name(FIELD_END_QUAY_REF).type(new GraphQLNonNull(GraphQLString)))
                 .build();
 
-
-        GraphQLInterfaceType identifiedEntityInterface = GraphQLInterfaceType.newInterface()
-                .name("IdentifiedEntity")
-                .field(idFieldDefinition)
-                .build();
-
-
         flexibleStopPlaceObjectType = newObject(groupOfEntitiesObjectType).name("FlexibleStopPlace")
-              //  .withInterface(identifiedEntityInterface)
                 .field(newFieldDefinition().name(FIELD_TRANSPORT_MODE).type(vehicleModeEnum))
                 .field(newFieldDefinition().name(FIELD_FLEXIBLE_AREA).type(flexibleAreaObjectType))
                 .field(newFieldDefinition().name(FIELD_HAIL_AND_RIDE_AREA).type(hailAndRideAreaType))
@@ -641,7 +485,7 @@ public class LinesGraphQLSchema {
                         .name("line")
                         .description("Get line by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> fixedLineRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> fixedLineRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(fixedLineObjectType))
                         .name("fixedLines")
@@ -654,7 +498,7 @@ public class LinesGraphQLSchema {
                         .description("Get fixedLine by id")
                         .deprecate("Use 'line' instead")
                         .argument(idArgument)
-                        .dataFetcher(env -> fixedLineRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> fixedLineRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(flexibleLineObjectType))
                         .name("flexibleLines")
@@ -665,7 +509,7 @@ public class LinesGraphQLSchema {
                         .name("flexibleLine")
                         .description("Get flexibleLine by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> flexibleLineRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> flexibleLineRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(dayTypeObjectType))
                         .name("dayTypes")
@@ -676,28 +520,24 @@ public class LinesGraphQLSchema {
                         .name("dayTypesByIds")
                         .description("List dayTypes by ids")
                         .argument(idsArgument)
-                        .dataFetcher(env -> dayTypeRepository.findByIds(env.getArgument(FIELD_IDS))))
+                        .dataFetcher(env -> dayTypeRepository.findByNetexIdIn(env.getArgument(FIELD_IDS))))
                 .field(newFieldDefinition()
                         .type(dayTypeObjectType)
                         .name("dayType")
                         .description("Get dayType by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> dayTypeRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> dayTypeRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(flexibleStopPlaceObjectType))
                         .name("flexibleStopPlaces")
                         .description("List flexibleStopPlaces")
-                        .dataFetcher(env -> {
-                                    List<FlexibleStopPlace> result = flexibleStopPlaceRepository.findAll();
-                            return result;
-                                }
-                                ))
+                        .dataFetcher(env -> IterableUtils.toList(flexibleStopPlaceRepository.findAll())))
                 .field(newFieldDefinition()
                         .type(flexibleStopPlaceObjectType)
                         .name("flexibleStopPlace")
                         .description("Get flexibleStopPlace by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> flexibleStopPlaceRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> flexibleStopPlaceRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(new GraphQLList(networkObjectType))
                         .name("networks")
@@ -724,7 +564,7 @@ public class LinesGraphQLSchema {
                         .name("export")
                         .description("Get export by id")
                         .argument(idArgument)
-                        .dataFetcher(env -> exportRepository.getOne(env.getArgument(FIELD_ID))))
+                        .dataFetcher(env -> exportRepository.findByNetexId(env.getArgument(FIELD_ID))))
                 .field(newFieldDefinition()
                         .type(exportedLineStatisticsObjectType)
                         .name("lineStatistics")

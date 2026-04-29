@@ -15,18 +15,22 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import no.entur.uttu.util.Preconditions;
 
-import jakarta.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 @Entity
 @SequenceGenerator(
-        name = "hail_and_ride_area_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "hail_and_ride_area_seq",
         allocationSize = 10
 )
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class HailAndRideArea extends IdentifiedEntity {
 
     @NotNull
@@ -34,22 +38,6 @@ public class HailAndRideArea extends IdentifiedEntity {
 
     @NotNull
     private String endQuayRef;
-
-    public String getStartQuayRef() {
-        return startQuayRef;
-    }
-
-    public void setStartQuayRef(String startQuayRef) {
-        this.startQuayRef = startQuayRef;
-    }
-
-    public String getEndQuayRef() {
-        return endQuayRef;
-    }
-
-    public void setEndQuayRef(String endQuayRef) {
-        this.endQuayRef = endQuayRef;
-    }
 
     @Override
     public void checkPersistable() {

@@ -3,43 +3,32 @@ package no.entur.uttu.graphql.mappers;
 import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.model.Line;
 import no.entur.uttu.model.Network;
-import no.entur.uttu.organisation.OrganisationRegistry;
 import no.entur.uttu.repository.CompanyRegistry;
-import no.entur.uttu.repository.NetworkRepository;
 import no.entur.uttu.repository.ProviderRepository;
+import no.entur.uttu.repository.RemoteNetworkRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 import static no.entur.uttu.graphql.GraphQLNames.*;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NOTICES;
 
 @Component
-public abstract class LineMapper<T extends Line> extends AbstractGroupOfEntitiesMapper<T>  {
+public abstract class LineMapper<T extends Line> extends AbstractGroupOfEntitiesMapper<T> {
 
-    @Autowired
-    private NetworkRepository networkRepository;
+    private final RemoteNetworkRepository networkRepository;
+    private final JourneyPatternMapper journeyPatternMapper;
+    private final NoticeMapper noticeMapper;
+    private final CompanyRegistry companyRegistry;
 
-    @Autowired
-    private JourneyPatternMapper journeyPatternMapper;
-
-    @Autowired
-    private NoticeMapper noticeMapper;
-
-    @Autowired
-    private OrganisationRegistry organisationRegistry;
-
-    @Autowired
-    private CompanyRegistry companyRegistry;
-
-    @Autowired
-
-    public LineMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> repository) {
+    protected LineMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> repository, RemoteNetworkRepository networkRepository, JourneyPatternMapper journeyPatternMapper, NoticeMapper noticeMapper, CompanyRegistry companyRegistry) {
         super(providerRepository, repository);
+        this.networkRepository = networkRepository;
+        this.journeyPatternMapper = journeyPatternMapper;
+        this.noticeMapper = noticeMapper;
+        this.companyRegistry = companyRegistry;
     }
 
     @Override
@@ -55,16 +44,16 @@ public abstract class LineMapper<T extends Line> extends AbstractGroupOfEntities
     }
 
     private void setNetwork(T entity, String networkRef) {
-        if (StringUtils.isEmpty(networkRef)){
+        if (StringUtils.isEmpty(networkRef)) {
             throw new IllegalArgumentException("Empty network reference :" + networkRef);
         }
 
         List<Network> existingNetworks = networkRepository.syncAndFindAll();
         Optional<Network> foundNetworkOpt = existingNetworks.stream()
-                                                            .filter(network -> networkRef.equals(network.getNetexId()))
-                                                            .findFirst();
+                .filter(network -> networkRef.equals(network.getNetexId()))
+                .findFirst();
 
-        if (foundNetworkOpt.isEmpty()){
+        if (foundNetworkOpt.isEmpty()) {
             throw new IllegalArgumentException("Unknown network reference :" + networkRef);
         }
         entity.setNetwork(foundNetworkOpt.get());

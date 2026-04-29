@@ -15,40 +15,30 @@
 
 package no.entur.uttu.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.locationtech.jts.geom.Polygon;
 
 import javax.validation.constraints.NotNull;
 
 @Entity
 @SequenceGenerator(
-        name = "flexible_area_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "flexible_area_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true, of = "polygon")
+@ToString(callSuper = true, of = "polygon")
+@Data
 public class FlexibleArea extends IdentifiedEntity {
 
-    /**
-     * Polygon is wrapped in PersistablePolygon.
-     * Because we want to fetch polygons lazily and using lazy property fetching with byte code enhancement breaks tests.
-     */
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
-    private PersistablePolygon polygon;
+    private Polygon polygon;
 
-
-    public Polygon getPolygon() {
-        if (polygon == null) {
-            return null;
-        }
-        return polygon.getPolygon();
-    }
-
-    public void setPolygon(Polygon polygon) {
-        if (polygon == null) {
-            this.polygon = null;
-        } else {
-            this.polygon = new PersistablePolygon(polygon);
-        }
-    }
+    @ManyToOne(optional = false)
+    private FlexibleStopPlace flexibleStopPlace;
 }

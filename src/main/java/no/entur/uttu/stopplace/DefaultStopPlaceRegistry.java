@@ -21,26 +21,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jakarta.annotation.PostConstruct;
 import no.entur.uttu.config.NetexHttpMessageConverter;
-
 import no.entur.uttu.model.StopPlaceView;
 import no.entur.uttu.security.TokenService;
 import org.locationtech.jts.geom.Polygon;
 import org.rutebanken.netex.model.StopPlace;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import jakarta.annotation.PostConstruct;
 import javax.jdo.annotations.Cacheable;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -57,14 +55,10 @@ import java.util.stream.Collectors;
 public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultStopPlaceRegistry.class);
-
-    private RestTemplate restTemplate = new RestTemplate();
-    @Autowired
-    private TokenService tokenService;
-
     private static final String ET_CLIENT_ID_HEADER = "ET-Client-ID";
     private static final String ET_CLIENT_NAME_HEADER = "ET-Client-Name";
-
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final TokenService tokenService;
     @Value("${http.client.name:uttu}")
     private String clientName;
 
@@ -82,6 +76,10 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
                     return lookupStopPlaceByQuayRef(quayRef);
                 }
             });
+
+    public DefaultStopPlaceRegistry(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     @PostConstruct
     private void setup() {
@@ -103,10 +101,7 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
     private org.rutebanken.netex.model.StopPlace lookupStopPlaceByQuayRef(String quayRef) {
         try {
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("netexQuayId", quayRef);
-
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stopPlaceRegistryUrl + "tad_stop_place_from_quay");
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(stopPlaceRegistryUrl + "tad_stop_place_from_quay");
             builder.replaceQueryParam("quayId", quayRef);
 
             ResponseEntity<StopPlace> exchange = restTemplate.exchange(
@@ -126,7 +121,8 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
     private HttpEntity<Void> createHttpEntity() {
         return createHttpEntity(MediaType.APPLICATION_XML);
     }
-    private HttpEntity<Void> createHttpEntity( MediaType mediaType) {
+
+    private HttpEntity<Void> createHttpEntity(MediaType mediaType) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(mediaType));
         headers.set(ET_CLIENT_NAME_HEADER, clientName);
@@ -135,16 +131,16 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
         return new HttpEntity<>(headers);
     }
 
-    public List<StopPlaceView> getMembersForArea(Polygon polygon)  {
+    public List<StopPlaceView> getMembersForArea(Polygon polygon) {
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stopPlaceRegistryUrl + "netex/getTADStopPlaces");
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(stopPlaceRegistryUrl + "netex/getTADStopPlaces");
         builder.replaceQueryParam("area", polygon.toString());
 
 
         try {
             HashMap<String, String> postDataParams = new HashMap<>();
 
-            URL url = new URL(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams));
+            URL url = URI.create(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams)).toURL();
             HttpURLConnection connection = null;
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -152,39 +148,39 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
             connection.setDoOutput(true);
             connection.setRequestProperty("Authorization", "Bearer " + tokenService.getToken());
             OutputStream outputStream = connection.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
             writer.write(polygon.toString());
             writer.close();
 
 
             //connection.connect();
             InputStream inputStream = connection.getInputStream();
-            String resultString = new BufferedReader( new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines() .collect(Collectors.joining("\n"));
+            String resultString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
 
             return convertJSONtoObjects(resultString);
         } catch (IOException e) {
-            throw new RuntimeException("Error while getting members for area",e);
+            throw new RuntimeException("Error while getting members for area", e);
         }
     }
 
     private List<StopPlaceView> convertJSONtoObjects(String jsonDisruptions) throws JsonProcessingException {
-                ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(jsonDisruptions, new TypeReference<List<StopPlaceView>>(){});
-
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(jsonDisruptions, new TypeReference<List<StopPlaceView>>() {
+        });
     }
 
-    private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException{
+    private String getPostDataString(HashMap<String, String> params) {
         StringBuilder result = new StringBuilder();
         boolean first = true;
-        for(Map.Entry<String, String> entry : params.entrySet()){
+        for (Map.Entry<String, String> entry : params.entrySet()) {
             if (first)
                 first = false;
             else
                 result.append("&");
 
-            result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            result.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
             result.append("=");
-            result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+            result.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
         }
 
         return result.toString();

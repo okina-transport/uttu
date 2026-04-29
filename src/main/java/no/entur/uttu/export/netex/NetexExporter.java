@@ -15,27 +15,27 @@
 
 package no.entur.uttu.export.netex;
 
-import no.entur.uttu.error.codederror.CodedError;
-import no.entur.uttu.error.codes.ErrorCodeEnumeration;
-import no.entur.uttu.model.Line;
-import no.entur.uttu.model.ProviderEntity;
-import no.entur.uttu.model.job.ExportLineAssociation;
-import no.entur.uttu.repository.FixedLineRepository;
-import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import no.entur.uttu.util.Preconditions;
-import no.entur.uttu.export.model.ExportException;
-import no.entur.uttu.export.netex.producer.common.NetexCommonFileProducer;
-import no.entur.uttu.export.netex.producer.line.NetexLineFileProducer;
-import no.entur.uttu.model.job.Export;
-import no.entur.uttu.repository.FlexibleLineRepository;
-import org.rutebanken.netex.model.PublicationDeliveryStructure;
-import org.rutebanken.netex.validation.NeTExValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
+import no.entur.uttu.error.codederror.CodedError;
+import no.entur.uttu.error.codes.ErrorCodeEnumeration;
+import no.entur.uttu.export.model.ExportException;
+import no.entur.uttu.export.netex.producer.common.NetexCommonFileProducer;
+import no.entur.uttu.export.netex.producer.line.NetexLineFileProducer;
+import no.entur.uttu.model.Line;
+import no.entur.uttu.model.ProviderEntity;
+import no.entur.uttu.model.job.Export;
+import no.entur.uttu.model.job.ExportLineAssociation;
+import no.entur.uttu.repository.FixedLineRepository;
+import no.entur.uttu.repository.FlexibleLineRepository;
+import no.entur.uttu.repository.generic.ProviderEntityRepository;
+import no.entur.uttu.util.Preconditions;
+import org.apache.commons.collections4.IterableUtils;
+import org.rutebanken.netex.model.PublicationDeliveryStructure;
+import org.rutebanken.netex.validation.NeTExValidator;
+import org.springframework.stereotype.Component;
+
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
@@ -47,21 +47,21 @@ import static jakarta.xml.bind.JAXBContext.newInstance;
 @Component
 public class NetexExporter {
 
-    @Autowired
-    private FlexibleLineRepository flexibleLineRepository;
-
-    @Autowired
-    private FixedLineRepository fixedLineRepository;
-
-    @Autowired
-    private NetexLineFileProducer netexLineFileProducer;
-
-    @Autowired
-    private NetexCommonFileProducer commonFileProducer;
+    private final FlexibleLineRepository flexibleLineRepository;
+    private final FixedLineRepository fixedLineRepository;
+    private final NetexLineFileProducer netexLineFileProducer;
+    private final NetexCommonFileProducer commonFileProducer;
 
     private JAXBContext jaxbContext;
 
     private NeTExValidator netexValidator;
+
+    public NetexExporter(FlexibleLineRepository flexibleLineRepository, FixedLineRepository fixedLineRepository, NetexLineFileProducer netexLineFileProducer, NetexCommonFileProducer commonFileProducer) {
+        this.flexibleLineRepository = flexibleLineRepository;
+        this.fixedLineRepository = fixedLineRepository;
+        this.netexLineFileProducer = netexLineFileProducer;
+        this.commonFileProducer = commonFileProducer;
+    }
 
     @PostConstruct
     public void asyncInit() {
@@ -103,7 +103,7 @@ public class NetexExporter {
     }
 
     private <T extends ProviderEntity> List<T> findAllValidEntitiesFromRepository(ProviderEntityRepository<T> repository, NetexExportContext exportContext) {
-        return repository.findAll().stream().filter(exportContext::isValid).collect(Collectors.toList());
+        return IterableUtils.toList(repository.findAll()).stream().filter(exportContext::isValid).collect(Collectors.toList());
     }
 
     private void marshalToFile(NetexFile file, DataSetProducer dataSetProducer, boolean validateAgainstSchema) {

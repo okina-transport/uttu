@@ -17,7 +17,8 @@ package no.entur.uttu.repository;
 
 import no.entur.uttu.model.TimetabledPassingTime;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
+import org.springframework.stereotype.Repository;
 
-
+@Repository
 public interface TimetabledPassingTimeRepository extends ProviderEntityRepository<TimetabledPassingTime> {
 }

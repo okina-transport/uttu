@@ -15,7 +15,11 @@
 
 package no.entur.uttu.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.config.Context;
 
 import javax.validation.constraints.NotNull;
@@ -23,10 +27,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @MappedSuperclass
+@EqualsAndHashCode(of = {"version", "datasetId", "originalId"})
+@ToString(of = {"version", "datasetId", "originalId"})
+@Data
 public abstract class IdentifiedEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "identified_entity_gen")
     protected Long pk;
 
     @Version
@@ -35,66 +42,24 @@ public abstract class IdentifiedEntity {
 
     @NotNull
     protected Instant created;
+
     @NotNull
     protected Instant changed;
+
     @NotNull
     protected String createdBy;
+
     @NotNull
     protected String changedBy;
 
+    @Nullable
+    protected String datasetId;
 
-    /**
-     * This is the primary identificator.
-     *
-     * @return the primary long value of this identitifed entity.
-     */
-    public Long getPk() {
-        return pk;
-    }
+    @Nullable
+    protected String originalId;
 
-    private void setPk(Long pk) {
-        this.pk = pk;
-    }
-
-    public Instant getCreated() {
-        return created;
-    }
-
-    public void setCreated(Instant created) {
-        this.created = created;
-    }
-
-    public Instant getChanged() {
-        return changed;
-    }
-
-    public void setChanged(Instant changed) {
-        this.changed = changed;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getChangedBy() {
-        return changedBy;
-    }
-
-    public void setChangedBy(String changedBy) {
-        this.changedBy = changedBy;
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public void setVersion(Long version) {
-        this.version = version;
-    }
+    @Transient
+    protected boolean merged;
 
     @PrePersist
     @PreUpdate
@@ -127,14 +92,4 @@ public abstract class IdentifiedEntity {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return
-                "pk=" + pk +
-                        ", version=" + version +
-                        ", created=" + created +
-                        ", changed=" + changed +
-                        ", createdBy='" + createdBy + '\'' +
-                        ", changedBy='" + changedBy + '\'';
-    }
 }
