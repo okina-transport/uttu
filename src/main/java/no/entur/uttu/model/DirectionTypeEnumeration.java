@@ -28,29 +28,12 @@ public enum DirectionTypeEnumeration {
         this.value = v;
     }
 
-    public static DirectionTypeEnumeration fromValue(String v) {
-        DirectionTypeEnumeration[] var1 = values();
-        int var2 = var1.length;
-
-        for (int var3 = 0; var3 < var2; ++var3) {
-            DirectionTypeEnumeration c = var1[var3];
-            if (c.value.equals(v)) {
-                return c;
-            }
-        }
-
-        throw new IllegalArgumentException(v);
-    }
-
     public static DirectionTypeEnumeration fromDirectionId(String directionId) {
-        switch (directionId) {
-            case "0":
-                return INBOUND;
-            case "1":
-                return OUTBOUND;
-            default:
-                throw new IllegalArgumentException("Invalid directionId: " + directionId);
-        }
+        return switch (directionId) {
+            case "0" -> INBOUND;
+            case "1" -> OUTBOUND;
+            default -> throw new IllegalArgumentException("Invalid directionId: " + directionId);
+        };
     }
 
     public String value() {

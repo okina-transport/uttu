@@ -20,36 +20,34 @@ import no.entur.uttu.model.Provider;
 import no.entur.uttu.repository.ProviderRepository;
 import org.rutebanken.helper.organisation.RoleAssignment;
 import org.rutebanken.helper.organisation.RoleAssignmentExtractor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class ProviderAuthenticationService {
 
-    @Autowired
-    private ProviderRepository providerRepository;
+    private final ProviderRepository providerRepository;
+    private final RoleAssignmentExtractor roleAssignmentExtractor;
 
-    @Autowired
-    private RoleAssignmentExtractor roleAssignmentExtractor;
+    public ProviderAuthenticationService(ProviderRepository providerRepository, RoleAssignmentExtractor roleAssignmentExtractor) {
+        this.providerRepository = providerRepository;
+        this.roleAssignmentExtractor = roleAssignmentExtractor;
+    }
 
     public boolean hasRoleForProvider(Authentication authentication, String role, String providerCode) {
         if (providerCode == null) {
             return false;
         }
-        Provider provider = providerRepository.getOne(providerCode);
-        if (provider == null) {
-            return false;
-        }
-
-        return roleAssignmentExtractor.getRoleAssignmentsForUser(authentication).stream()
-                       .anyMatch(roleAssignment -> match(roleAssignment, role, provider));
+        Optional<Provider> providerOpt = providerRepository.findByCode(providerCode);
+        return providerOpt.map(
+                provider -> roleAssignmentExtractor.getRoleAssignmentsForUser(authentication).stream()
+                        .anyMatch(roleAssignment -> match(roleAssignment, role, provider))
+        ).orElse(false);
     }
 
     private boolean match(RoleAssignment roleAssignment, String role, Provider provider) {
         return role.equals(roleAssignment.getRole()) && provider.getCodespace().getXmlns().equals(roleAssignment.getOrganisation());
     }
-
-
 }
