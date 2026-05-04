@@ -9,8 +9,8 @@ INSERT INTO codespace
  changed_by)
 VALUES (-1,
         0,
-        'TST',
-        'http://www.rutebanken.org/ns/tst',
+        'test',
+        'http://www.rutebanken.org/ns/test',
         Now(),
         'test',
         Now(),
@@ -28,11 +28,9 @@ INSERT INTO provider
  changed_by)
 VALUES (-1,
         0,
-        'tst',
+        'test',
         'Test provider',
-        (SELECT pk
-         FROM codespace
-         WHERE xmlns = 'TST'),
+        -1,
         Now(),
         'test',
         Now(),
@@ -49,7 +47,7 @@ INSERT INTO codespace
  changed_by)
 VALUES (0,
         0,
-        'FOO',
+        'foo',
         'http://www.rutebanken.org/ns/foo',
         Now(),
         'test',
@@ -94,9 +92,7 @@ VALUES (-1,
         0,
         'TST:FlexibleStopPlace:1',
         'BUS',
-        (SELECT pk
-         FROM codespace
-         WHERE xmlns = 'TST'));
+        -1);
 
 INSERT INTO network
 (pk,
@@ -126,8 +122,6 @@ VALUES (-1,
         '',
         '',
         'TST',
-        (SELECT pk
-         FROM provider
-         WHERE code = 'tst'),
+        -1,
         '',
         '');
