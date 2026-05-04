@@ -20,8 +20,8 @@ public class AgencyMapper implements Mapper<Agency> {
         provider.setCode(gtfsImportReferential.getDataset().toLowerCase());
 
         Codespace codespace = gtfsImportReferential.getCodespace(gtfsEntity.getId());
-        codespace.setXmlns(gtfsImportReferential.getDataset());
-        codespace.setXmlnsUrl("http://" + gtfsImportReferential.getDataset());
+        codespace.setXmlns(gtfsImportReferential.getDataset().toLowerCase());
+        codespace.setXmlnsUrl("http://" + gtfsImportReferential.getDataset().toLowerCase());
         provider.setCodespace(codespace);
 
         Network network = gtfsImportReferential.getNetwork(gtfsEntity.getId());
