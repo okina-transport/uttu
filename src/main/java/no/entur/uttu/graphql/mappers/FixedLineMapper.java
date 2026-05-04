@@ -17,14 +17,17 @@ package no.entur.uttu.graphql.mappers;
 
 import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.model.FixedLine;
+import no.entur.uttu.repository.CompanyRegistry;
 import no.entur.uttu.repository.ProviderRepository;
+import no.entur.uttu.repository.RemoteNetworkRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FixedLineMapper extends LineMapper<FixedLine> {
-    public FixedLineMapper(ProviderRepository providerRepository, ProviderEntityRepository<FixedLine> repository) {
-        super(providerRepository, repository);
+
+    public FixedLineMapper(ProviderRepository providerRepository, ProviderEntityRepository<FixedLine> repository, RemoteNetworkRepository networkRepository, JourneyPatternMapper journeyPatternMapper, NoticeMapper noticeMapper, CompanyRegistry companyRegistry) {
+        super(providerRepository, repository, networkRepository, journeyPatternMapper, noticeMapper, companyRegistry);
     }
 
     @Override

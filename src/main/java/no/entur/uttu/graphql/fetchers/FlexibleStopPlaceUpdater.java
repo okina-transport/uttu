@@ -17,12 +17,11 @@ package no.entur.uttu.graphql.fetchers;
 
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codederror.EntityHasReferencesCodedError;
-import no.entur.uttu.util.Preconditions;
 import no.entur.uttu.graphql.mappers.AbstractProviderEntityMapper;
 import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.repository.StopPointInJourneyPatternRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import no.entur.uttu.util.Preconditions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,16 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class FlexibleStopPlaceUpdater extends AbstractProviderEntityUpdater<FlexibleStopPlace> {
 
-    @Autowired
-    private StopPointInJourneyPatternRepository stopPointInJourneyPatternRepository;
+    private final StopPointInJourneyPatternRepository stopPointInJourneyPatternRepository;
 
-    public FlexibleStopPlaceUpdater(AbstractProviderEntityMapper<FlexibleStopPlace> mapper, ProviderEntityRepository<FlexibleStopPlace> repository) {
+    public FlexibleStopPlaceUpdater(AbstractProviderEntityMapper<FlexibleStopPlace> mapper, ProviderEntityRepository<FlexibleStopPlace> repository, StopPointInJourneyPatternRepository stopPointInJourneyPatternRepository) {
         super(mapper, repository);
+        this.stopPointInJourneyPatternRepository = stopPointInJourneyPatternRepository;
     }
 
     @Override
     protected void verifyDeleteAllowed(String id) {
-        FlexibleStopPlace entity = repository.getOne(id);
+        FlexibleStopPlace entity = repository.findByNetexId(id);
         if (entity != null) {
             int noOfLines = stopPointInJourneyPatternRepository.countByFlexibleStopPlace(entity);
             CodedError error = EntityHasReferencesCodedError.fromNumberOfReferences(noOfLines);

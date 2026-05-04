@@ -16,7 +16,7 @@
 package no.entur.uttu.graphql.mappers;
 
 import no.entur.uttu.graphql.ArgumentWrapper;
-import no.entur.uttu.model.GroupOfEntities_VersionStructure;
+import no.entur.uttu.model.GroupOfEntitiesVersionStructure;
 import no.entur.uttu.repository.ProviderRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 
@@ -24,9 +24,9 @@ import java.util.Map;
 
 import static no.entur.uttu.graphql.GraphQLNames.*;
 
-public abstract class AbstractGroupOfEntitiesMapper<T extends GroupOfEntities_VersionStructure> extends AbstractProviderEntityMapper<T> {
+public abstract class AbstractGroupOfEntitiesMapper<T extends GroupOfEntitiesVersionStructure> extends AbstractProviderEntityMapper<T> {
 
-    public AbstractGroupOfEntitiesMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> repository) {
+    protected AbstractGroupOfEntitiesMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> repository) {
         super(providerRepository, repository);
     }
 

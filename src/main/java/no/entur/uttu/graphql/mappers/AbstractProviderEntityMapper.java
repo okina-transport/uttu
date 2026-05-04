@@ -24,17 +24,18 @@ import no.entur.uttu.repository.generic.ProviderEntityRepository;
 import no.entur.uttu.util.Preconditions;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static no.entur.uttu.graphql.GraphQLNames.FIELD_ID;
 
 public abstract class AbstractProviderEntityMapper<T extends ProviderEntity> {
 
-    private ProviderEntityRepository<T> entityRepository;
+    private final ProviderEntityRepository<T> entityRepository;
 
-    private ProviderRepository providerRepository;
+    private final ProviderRepository providerRepository;
 
 
-    public AbstractProviderEntityMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> entityRepository) {
+    protected AbstractProviderEntityMapper(ProviderRepository providerRepository, ProviderEntityRepository<T> entityRepository) {
         this.providerRepository = providerRepository;
         this.entityRepository = entityRepository;
     }
@@ -47,9 +48,9 @@ public abstract class AbstractProviderEntityMapper<T extends ProviderEntity> {
             entity = createNewEntity(input);
             entity.setProvider(getVerifiedProvider(Context.getVerifiedProviderCode()));
         } else {
-            entity = entityRepository.getOne(netexId);
+            entity = entityRepository.findByNetexId(netexId);
             Preconditions.checkArgument(entity != null,
-                    "Attempting to update Entity with netexId=%s, but Entity does not exist.", netexId);
+                    "Attempting to persistUpdate Entity with netexId=%s, but Entity does not exist.", netexId);
         }
 
         populateEntityFromInput(entity, input);
@@ -63,9 +64,9 @@ public abstract class AbstractProviderEntityMapper<T extends ProviderEntity> {
 
 
     private Provider getVerifiedProvider(String providerCode) {
-        Provider provider = providerRepository.getOne(providerCode);
-        Preconditions.checkArgument(provider != null,
+        Optional<Provider> provider = providerRepository.findByCode(providerCode);
+        Preconditions.checkArgument(provider.isPresent(),
                 "Provider not found [code=%s]", providerCode);
-        return provider;
+        return provider.get();
     }
 }

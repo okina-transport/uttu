@@ -47,11 +47,11 @@ public class DayTypeUpdater extends AbstractProviderEntityUpdater<DayType> {
 
     @Override
     protected void verifyDeleteAllowed(String id) {
-        DayType dayType = repository.getOne(id);
+        DayType dayType = repository.findByNetexId(id);
         if (dayType != null) {
             long noOfServiceJourneys = serviceJourneyRepository.countByDayTypePk(dayType.getPk());
             Preconditions.checkArgument(noOfServiceJourneys == 0,
-                    EntityHasReferencesCodedError.fromNumberOfReferences((int)noOfServiceJourneys),
+                    EntityHasReferencesCodedError.fromNumberOfReferences((int) noOfServiceJourneys),
                     "%s cannot be deleted as it is referenced by %s serviceJourney(s)", dayType.identity(), noOfServiceJourneys);
         }
         super.verifyDeleteAllowed(id);

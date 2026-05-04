@@ -15,22 +15,18 @@
 
 package no.entur.uttu.graphql;
 
+import jakarta.persistence.EntityNotFoundException;
 import no.entur.uttu.model.ProviderEntity;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
 
-import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ArgumentWrapper {
 
-    private Map<String, Object> map;
+    private final Map<String, Object> map;
 
     public ArgumentWrapper(Map<String, Object> map) {
         this.map = map;
@@ -61,7 +57,7 @@ public class ArgumentWrapper {
         if (reference == null) {
             return null;
         }
-        return Optional.ofNullable(repository.getOne((String) reference)).orElseThrow(() -> new EntityNotFoundException("Referred entity not found: " + reference));
+        return Optional.ofNullable(repository.findByNetexId((String) reference)).orElseThrow(() -> new EntityNotFoundException("Referred entity not found: " + reference));
     }
 
 
@@ -84,7 +80,7 @@ public class ArgumentWrapper {
             }
 
             if (val instanceof Collection) {
-                func.accept(((Collection<T>) val).stream().map(t -> mapper.apply(t)).collect(Collectors.toList()));
+                func.accept(((Collection<T>) val).stream().map(mapper).collect(Collectors.toList()));
             } else {
                 throw new RuntimeException("Wrong datatype, expected Collection, got: " + val.getClass());
             }

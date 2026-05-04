@@ -20,32 +20,30 @@ import no.entur.uttu.model.ExportedLineStatistics;
 import no.entur.uttu.model.ProviderEntity;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 @Entity
 @SequenceGenerator(
-        name = "export_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "export_seq",
         allocationSize = 10
 )
 public class Export extends ProviderEntity {
 
+    @OneToMany(mappedBy = "export", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    private final List<ExportedLineStatistics> exportedLineStatistics = new ArrayList<>();
     private String name;
-
     @NotNull
     @Enumerated(EnumType.STRING)
     private JobStatus exportStatus = JobStatus.PROCESSING;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExportMessage> messages = new ArrayList<>();
-
-    @OneToMany(mappedBy = "export", cascade = CascadeType.ALL, orphanRemoval = true)
-    @NotNull
-    private final List<ExportedLineStatistics> exportedLineStatistics = new ArrayList<>();
+    private String fileName;
+    private boolean dryRun;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "export")
+    private Collection<ExportLineAssociation> exportLineAssociations;
 
     public String getName() {
         return name;
@@ -54,13 +52,6 @@ public class Export extends ProviderEntity {
     public void setName(String name) {
         this.name = name;
     }
-
-    private String fileName;
-
-    private boolean dryRun;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "export")
-    private Collection<ExportLineAssociation> exportLineAssociations;
 
     public Collection<ExportLineAssociation> getExportLineAssociations() {
         return exportLineAssociations;
@@ -114,6 +105,7 @@ public class Export extends ProviderEntity {
         exportedLineStatisticsToAdd.setExport(this);
         exportedLineStatistics.add(exportedLineStatisticsToAdd);
     }
+
     @Override
     public String toString() {
         return "Export{" +

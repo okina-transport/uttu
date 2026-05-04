@@ -31,7 +31,7 @@ public abstract class AbstractProviderEntityUpdater<T extends ProviderEntity> im
 
     protected ProviderEntityRepository<T> repository;
 
-    public AbstractProviderEntityUpdater(AbstractProviderEntityMapper<T> mapper, ProviderEntityRepository<T> repository) {
+    protected AbstractProviderEntityUpdater(AbstractProviderEntityMapper<T> mapper, ProviderEntityRepository<T> repository) {
         this.mapper = mapper;
         this.repository = repository;
     }
@@ -49,7 +49,11 @@ public abstract class AbstractProviderEntityUpdater<T extends ProviderEntity> im
     protected T deleteEntity(DataFetchingEnvironment env) {
         String id = env.getArgument(FIELD_ID);
         verifyDeleteAllowed(id);
-        return repository.delete(id);
+        T entity = repository.findByNetexId(id);
+        if (entity != null) {
+            repository.delete(entity);
+        }
+        return entity;
     }
 
     protected T saveEntity(DataFetchingEnvironment env) {

@@ -17,12 +17,8 @@ package no.entur.uttu.graphql.mappers;
 
 import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.model.Network;
-
 import no.entur.uttu.repository.CompanyRegistry;
-import no.entur.uttu.repository.NetworkRepository;
 import no.entur.uttu.repository.ProviderRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static no.entur.uttu.graphql.GraphQLNames.FIELD_AUTHORITY_REF;
@@ -30,11 +26,11 @@ import static no.entur.uttu.graphql.GraphQLNames.FIELD_AUTHORITY_REF;
 @Component
 public class NetworkMapper extends AbstractGroupOfEntitiesMapper<Network> {
 
-    @Autowired
-    private CompanyRegistry companyRegistry;
+    private final CompanyRegistry companyRegistry;
 
-    public NetworkMapper(ProviderRepository providerRepository, NetworkRepository repository) {
+    public NetworkMapper(ProviderRepository providerRepository, CompanyRegistry companyRegistry) {
         super(providerRepository, null);
+        this.companyRegistry = companyRegistry;
     }
 
     @Override

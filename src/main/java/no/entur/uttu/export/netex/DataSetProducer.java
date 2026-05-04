@@ -18,12 +18,7 @@ package no.entur.uttu.export.netex;
 import no.entur.uttu.export.model.ExportException;
 import org.apache.commons.io.FileUtils;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,16 +34,16 @@ public class DataSetProducer implements Closeable {
 
     private static final String DATA_SET_CONTENT_FOLDER = "content";
 
-    private Path tmpFolder;
+    private final Path tmpFolder;
 
-    private Path contentFolder;
+    private final Path contentFolder;
 
     public DataSetProducer(String workingFolder) {
         try {
             tmpFolder = Files.createDirectories(Paths.get(workingFolder, String.valueOf(System.currentTimeMillis())));
             contentFolder = Files.createDirectory(tmpFolder.resolve(DATA_SET_CONTENT_FOLDER));
         } catch (IOException ioe) {
-            throw new ExportException("Failed to create working folder for producing data set: " + ioe.getMessage(), ioe);
+            throw new ExportException("Failed to persistCreation working folder for producing data set: " + ioe.getMessage(), ioe);
         }
     }
 
@@ -75,9 +70,9 @@ public class DataSetProducer implements Closeable {
     private void zipFilesInFolder(Path folder, File targetFile) throws IOException {
         try (Stream<Path> files = Files.walk(folder); FileOutputStream out = new FileOutputStream(targetFile); ZipOutputStream outZip = new ZipOutputStream(out)) {
             files
-                .filter(Files::isRegularFile)
-                .filter(path -> filterExcludeTargetFileFromArchive(path, targetFile))
-                .forEach(path -> addToZipFile(path, outZip));
+                    .filter(Files::isRegularFile)
+                    .filter(path -> filterExcludeTargetFileFromArchive(path, targetFile))
+                    .forEach(path -> addToZipFile(path, outZip));
         }
     }
 
@@ -86,7 +81,7 @@ public class DataSetProducer implements Closeable {
     }
 
     private void addToZipFile(Path file, ZipOutputStream zos) {
-        try (InputStream fis = Files.newInputStream(file);) {
+        try (InputStream fis = Files.newInputStream(file)) {
             ZipEntry zipEntry = new ZipEntry(file.getFileName().toString());
             zos.putNextEntry(zipEntry);
 

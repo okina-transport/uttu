@@ -16,6 +16,9 @@
 package no.entur.uttu.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.util.Preconditions;
 import org.springframework.util.CollectionUtils;
 
@@ -26,44 +29,23 @@ import java.util.List;
 
 @Entity
 @SequenceGenerator(
-        name = "day_type_gen",
+        name = "identified_entity_gen",
         sequenceName = "day_type_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true, of = {"daysOfWeek", "name"})
+@ToString(callSuper = true, of = {"daysOfWeek", "name"})
+@Data
 public class DayType extends ProviderEntity {
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
     private List<DayOfWeek> daysOfWeek = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DayTypeAssignment> dayTypeAssignments = new ArrayList<>();
 
     private String name;
-
-    public List<DayOfWeek> getDaysOfWeek() {
-        return daysOfWeek;
-    }
-
-    public void setDaysOfWeek(List<DayOfWeek> daysOfWeek) {
-        this.daysOfWeek = daysOfWeek;
-    }
-
-    public List<DayTypeAssignment> getDayTypeAssignments() {
-        return dayTypeAssignments;
-    }
-
-    public void setDayTypeAssignments(List<DayTypeAssignment> dayTypeAssignments) {
-        this.dayTypeAssignments = dayTypeAssignments;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     @Override
     public void checkPersistable() {
@@ -73,6 +55,13 @@ public class DayType extends ProviderEntity {
         if (CollectionUtils.isEmpty(daysOfWeek)) {
             boolean includedPeriod = getDayTypeAssignments().stream().anyMatch(dta -> dta.getOperatingPeriod() != null);
             Preconditions.checkArgument(!includedPeriod, "%s has OperatingPeriod without setting daysOfWeek", identity());
+        }
+    }
+
+    public void setDayTypeAssignments(List<DayTypeAssignment> dayTypeAssignments) {
+        this.dayTypeAssignments.clear();
+        if (dayTypeAssignments != null) {
+            this.dayTypeAssignments.addAll(dayTypeAssignments);
         }
     }
 

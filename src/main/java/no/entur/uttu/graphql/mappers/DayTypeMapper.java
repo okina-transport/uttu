@@ -31,7 +31,7 @@ import static no.entur.uttu.graphql.GraphQLNames.*;
 public class DayTypeMapper extends AbstractProviderEntityMapper<DayType> {
 
     public DayTypeMapper(ProviderRepository providerRepository, ProviderEntityRepository<DayType> repository) {
-        super(providerRepository,repository);
+        super(providerRepository, repository);
     }
 
     @Override

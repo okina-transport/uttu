@@ -27,13 +27,13 @@ import static no.entur.uttu.graphql.GraphQLNames.*;
 public class JourneyPatternMapper extends AbstractGroupOfEntitiesMapper<JourneyPattern> {
 
 
-    private ServiceJourneyMapper serviceJourneyMapper;
+    private final ServiceJourneyMapper serviceJourneyMapper;
 
-    private StopPointInJourneyPatternMapper stopPointInJourneyPatternMapper;
+    private final StopPointInJourneyPatternMapper stopPointInJourneyPatternMapper;
 
 
     public JourneyPatternMapper(ProviderRepository providerRepository, ProviderEntityRepository<JourneyPattern> repository,
-                                       ServiceJourneyMapper serviceJourneyMapper, StopPointInJourneyPatternMapper stopPointInJourneyPatternMapper) {
+                                ServiceJourneyMapper serviceJourneyMapper, StopPointInJourneyPatternMapper stopPointInJourneyPatternMapper) {
         super(providerRepository, repository);
         this.serviceJourneyMapper = serviceJourneyMapper;
         this.stopPointInJourneyPatternMapper = stopPointInJourneyPatternMapper;

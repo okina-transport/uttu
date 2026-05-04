@@ -24,43 +24,61 @@ import java.util.List;
 
 import static no.entur.uttu.model.ModelTestUtil.assertCheckPersistableFails;
 
-public class JourneyPatternTest {
+class JourneyPatternTest {
+
+    protected static JourneyPattern validJourneyPattern() {
+        JourneyPattern journeyPattern = new JourneyPattern();
+
+        StopPointInJourneyPattern firstPoint = new StopPointInJourneyPattern();
+        firstPoint.setForBoarding(true);
+        firstPoint.setStop(new Stop());
+
+        firstPoint.setDestinationDisplay(new DestinationDisplay());
+
+        StopPointInJourneyPattern lastPoint = new StopPointInJourneyPattern();
+        lastPoint.setForAlighting(true);
+        lastPoint.setStop(new Stop());
+        journeyPattern.setPointsInSequence(Arrays.asList(firstPoint, lastPoint));
+
+        journeyPattern.setLine(new FixedLine());
+        return journeyPattern;
+    }
 
     @Test
-    public void checkPersistable_minFields_success() {
+    void checkPersistable_minFields_success() {
         validJourneyPattern().checkPersistable();
     }
 
     @Test
-    public void checkPersistable_tooFewStopPointsInJourneyPattern_givesException() {
+    void checkPersistable_tooFewStopPointsInJourneyPattern_givesException() {
         JourneyPattern jp = validJourneyPattern();
         jp.getPointsInSequence().remove(1);
         assertCheckPersistableFails(jp);
     }
 
     @Test
-    public void checkPersistable_noBoardingOnFirstStopPointsInJourneyPattern_givesException() {
+    void checkPersistable_noBoardingOnFirstStopPointsInJourneyPattern_givesException() {
         JourneyPattern jp = validJourneyPattern();
         jp.getPointsInSequence().get(0).setForBoarding(false);
         assertCheckPersistableFails(jp);
     }
 
     @Test
-    public void checkPersistable_noAlightingOnLastStopPointsInJourneyPattern_givesException() {
+    void checkPersistable_noAlightingOnLastStopPointsInJourneyPattern_givesException() {
         JourneyPattern jp = validJourneyPattern();
         jp.getPointsInSequence().get(jp.getPointsInSequence().size() - 1).setForAlighting(false);
         assertCheckPersistableFails(jp);
     }
 
     @Test
-    public void checkPersistable_destinationDisplayOnLastStopPointsInJourneyPattern_givesException() {
+    void checkPersistable_destinationDisplayOnLastStopPointsInJourneyPattern_givesException() {
         JourneyPattern jp = validJourneyPattern();
         jp.getPointsInSequence().get(jp.getPointsInSequence().size() - 1).setDestinationDisplay(new DestinationDisplay());
         assertCheckPersistableFails(jp);
     }
 
     @Test
-    public void setPointsInSequence_assignsOrder() {
+    void setPointsInSequence_assignsOrder() {
         JourneyPattern journeyPattern = new JourneyPattern();
 
         List<StopPointInJourneyPattern> stopPoints = Arrays.asList(new StopPointInJourneyPattern(), new StopPointInJourneyPattern(), new StopPointInJourneyPattern());
@@ -70,22 +88,5 @@ public class JourneyPatternTest {
         Assertions.assertEquals(1, journeyPattern.getPointsInSequence().get(0).getOrder());
         Assertions.assertEquals(2, journeyPattern.getPointsInSequence().get(1).getOrder());
         Assertions.assertEquals(3, journeyPattern.getPointsInSequence().get(2).getOrder());
-    }
-
-
-    protected static JourneyPattern validJourneyPattern() {
-        JourneyPattern journeyPattern = new JourneyPattern();
-
-        StopPointInJourneyPattern firstPoint = new StopPointInJourneyPattern();
-        firstPoint.setForBoarding(true);
-        firstPoint.setQuayRef("quayRef");
-
-        firstPoint.setDestinationDisplay(new DestinationDisplay());
-
-        StopPointInJourneyPattern lastPoint = new StopPointInJourneyPattern();
-        lastPoint.setForAlighting(true);
-        lastPoint.setQuayRef("quayRef");
-        journeyPattern.setPointsInSequence(Arrays.asList(firstPoint, lastPoint));
-        return journeyPattern;
     }
 }

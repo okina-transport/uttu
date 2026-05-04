@@ -15,9 +15,12 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.model.job.Export;
 
-import jakarta.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,84 +28,33 @@ import java.util.List;
 
 @Entity
 @SequenceGenerator(
-        name = "exported_line_statistics_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "exported_line_statistics_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(of = {"lineName", "operatingPeriodFrom", "operatingPeriodTo", "publicCode"})
+@ToString(of = {"lineName", "operatingPeriodFrom", "operatingPeriodTo", "publicCode"})
+@Data
 public class ExportedLineStatistics {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    protected Long id;
-
-    @NotNull
-    protected String lineName;
-
-    @NotNull
-    private LocalDate operatingPeriodFrom;
-
-    @NotNull
-    private LocalDate operatingPeriodTo;
-
-    private String publicCode;
-
-    @ManyToOne
-    private @NotNull Export export;
 
     @OneToMany(mappedBy = "exportedLineStatistics", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @NotNull
     private final List<ExportedDayTypeStatistics> exportedDayTypesStatistics = new ArrayList<>();
-
-    public String getLineName() {
-        return lineName;
-    }
-
-    public void setLineName(String lineName) {
-        this.lineName = lineName;
-    }
-
-    public LocalDate getOperatingPeriodFrom() {
-        return operatingPeriodFrom;
-    }
-
-    public void setOperatingPeriodFrom(LocalDate fromDate) {
-        this.operatingPeriodFrom = fromDate;
-    }
-
-    public LocalDate getOperatingPeriodTo() {
-        return operatingPeriodTo;
-    }
-
-    public void setOperatingPeriodTo(LocalDate toDate) {
-        this.operatingPeriodTo = toDate;
-    }
-
-    public String getPublicCode() {
-        return publicCode;
-    }
-
-    public void setPublicCode(String publicCode) {
-        this.publicCode = publicCode;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Export getExport() {
-        return export;
-    }
-
-    public void setExport(Export export) {
-        this.export = export;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    protected Long id;
+    @NotNull
+    protected String lineName;
+    @NotNull
+    private LocalDate operatingPeriodFrom;
+    @NotNull
+    private LocalDate operatingPeriodTo;
+    private String publicCode;
+    @ManyToOne(optional = false)
+    private Export export;
 
     public boolean isValid(LocalDate from, LocalDate to) {
         return !(operatingPeriodFrom.isAfter(to) || operatingPeriodTo.isBefore(from));
-    }
-
-    public List<ExportedDayTypeStatistics> getExportedDayTypesStatistics() {
-        return exportedDayTypesStatistics;
     }
 
     public void addExportedDayTypesStatistics(ExportedDayTypeStatistics exportedDayTypesStatisticsToAdd) {

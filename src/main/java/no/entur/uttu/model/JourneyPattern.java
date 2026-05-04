@@ -16,9 +16,13 @@
 package no.entur.uttu.model;
 
 import jakarta.persistence.*;
-import no.entur.uttu.error.codes.ErrorCodeEnumeration;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.error.codederror.CodedError;
+import no.entur.uttu.error.codes.ErrorCodeEnumeration;
 import no.entur.uttu.util.Preconditions;
+import org.apache.commons.lang3.BooleanUtils;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -30,56 +34,33 @@ import static no.entur.uttu.model.Constraints.JOURNEY_PATTERN_UNIQUE_NAME;
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(name = JOURNEY_PATTERN_UNIQUE_NAME, columnNames = {"provider_pk", "name"})})
 @SequenceGenerator(
-        name = "journey_pattern_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "journey_pattern_seq",
         allocationSize = 10
 )
-public class JourneyPattern extends GroupOfEntities_VersionStructure {
+@EqualsAndHashCode(callSuper = true, of = "directionType")
+@ToString(callSuper = true, of = "directionType")
+@Data
+public class JourneyPattern extends GroupOfEntitiesVersionStructure {
 
-    @ManyToOne
-    private @NotNull Line line;
-
-    @OneToMany(mappedBy = "journeyPattern", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "journeyPattern", orphanRemoval = true)
     @NotNull
     private final List<ServiceJourney> serviceJourneys = new ArrayList<>();
-
-    @OneToMany(mappedBy = "journeyPattern", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "journeyPattern", orphanRemoval = true)
     @NotNull
     @OrderBy("order")
     private final List<StopPointInJourneyPattern> pointsInSequence = new ArrayList<>();
-
+    @ManyToOne(optional = false)
+    private Line line;
     @Enumerated(EnumType.STRING)
     private DirectionTypeEnumeration directionType;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Notice> notices;
+    private List<Notice> notices = new ArrayList<>();
 
-    public @NotNull Line getLine() {
-        return line;
-    }
-
-    public void setLine(Line line) {
-        this.line = line;
-    }
-
-    public List<ServiceJourney> getServiceJourneys() {
-        return serviceJourneys;
-    }
-
-    public DirectionTypeEnumeration getDirectionType() {
-        return directionType;
-    }
-
-    public void setDirectionType(DirectionTypeEnumeration directionType) {
-        this.directionType = directionType;
-    }
-
-    public List<Notice> getNotices() {
-        return notices;
-    }
-
-    public void setNotices(List<Notice> notices) {
-        this.notices = notices;
+    public void addServiceJourney(ServiceJourney serviceJourney) {
+        this.serviceJourneys.add(serviceJourney);
+        serviceJourney.setJourneyPattern(this);
     }
 
     public void setServiceJourneys(List<ServiceJourney> serviceJourneys) {
@@ -90,8 +71,9 @@ public class JourneyPattern extends GroupOfEntities_VersionStructure {
         }
     }
 
-    public List<StopPointInJourneyPattern> getPointsInSequence() {
-        return pointsInSequence;
+    public void addPointInSequence(StopPointInJourneyPattern pointInSequence) {
+        this.pointsInSequence.add(pointInSequence);
+        pointInSequence.setJourneyPattern(this);
     }
 
     public void setPointsInSequence(List<StopPointInJourneyPattern> pointsInSequence) {
@@ -121,16 +103,18 @@ public class JourneyPattern extends GroupOfEntities_VersionStructure {
 
         getPointsInSequence().stream().forEach(ProviderEntity::checkPersistable);
 
-        Preconditions.checkArgument(getPointsInSequence().get(0).getDestinationDisplay() != null,
-                "%s is missing destinationDisplay for first pointsInSequence", identity());
+        if (line instanceof FixedLine) {
+            Preconditions.checkArgument(!Boolean.FALSE.equals(getPointsInSequence().getFirst().getForBoarding()),
+                    "%s does not permit boarding on first pointsInSequence", identity());
 
-        Preconditions.checkArgument(!Boolean.FALSE.equals(getPointsInSequence().get(0).getForBoarding()),
-                "%s does not permit boarding on first pointsInSequence", identity());
+            Preconditions.checkArgument(!Boolean.FALSE.equals(getPointsInSequence().getLast().getForAlighting()),
+                    "%s does not permit alighting on last pointsInSequence", identity());
+        } else if (line instanceof FlexibleLine) {
+            Preconditions.checkArgument(getPointsInSequence().stream().anyMatch(stopPointInJourneyPattern -> BooleanUtils.isTrue(stopPointInJourneyPattern.getForBoarding())), "%s does not permit boarding", identity());
+            Preconditions.checkArgument(getPointsInSequence().stream().anyMatch(stopPointInJourneyPattern -> BooleanUtils.isTrue(stopPointInJourneyPattern.getForAlighting())), "%s does not permit alighting", identity());
+        }
 
-        Preconditions.checkArgument(!Boolean.FALSE.equals(getPointsInSequence().get(getPointsInSequence().size() - 1).getForAlighting()),
-                "%s does not permit alighting on last pointsInSequence", identity());
-
-        Preconditions.checkArgument(getPointsInSequence().get(getPointsInSequence().size() -1).getDestinationDisplay() == null,
+        Preconditions.checkArgument(getPointsInSequence().getLast().getDestinationDisplay() == null,
                 "%s has destinationDisplay for last pointsInSequence", identity());
 
         getServiceJourneys().stream().forEach(ProviderEntity::checkPersistable);

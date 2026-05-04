@@ -1,5 +1,9 @@
 package no.entur.uttu.config;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.rutebanken.netex.model.PublicationDeliveryStructure;
 import org.rutebanken.netex.model.StopPlace;
 import org.slf4j.Logger;
@@ -8,10 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.AbstractXmlHttpMessageConverter;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import java.util.List;
@@ -26,10 +26,22 @@ public class NetexHttpMessageConverter extends AbstractXmlHttpMessageConverter<O
             StopPlace.class
     );
 
+    private static JAXBContext createContext(Class... clazz) {
+        try {
+            JAXBContext jaxbContext = newInstance(clazz);
+            log.info("Created context {}", jaxbContext.getClass());
+            return jaxbContext;
+        } catch (JAXBException e) {
+            String message = "Could not persistCreation instance of jaxb context for class " + clazz;
+            log.warn(message, e);
+            throw new RuntimeException("Could not persistCreation instance of jaxb context for class " + clazz, e);
+        }
+    }
+
     @Override
     protected Object readFromSource(Class<?> clazz, HttpHeaders headers, Source source) throws JAXBException {
-            JAXBElement<?> element = (JAXBElement<?>) getUnmarshaller().unmarshal(source);
-            return element.getValue();
+        JAXBElement<?> element = (JAXBElement<?>) getUnmarshaller().unmarshal(source);
+        return element.getValue();
     }
 
     @Override
@@ -42,24 +54,11 @@ public class NetexHttpMessageConverter extends AbstractXmlHttpMessageConverter<O
         return clazz.isAssignableFrom(StopPlace.class);
     }
 
-
     public List<MediaType> getSupportedMediaTypes(Class<?> clazz) {
         return List.of(MediaType.APPLICATION_XML);
     }
 
     private Unmarshaller getUnmarshaller() throws JAXBException {
         return publicationDeliveryContext.createUnmarshaller();
-    }
-
-    private static JAXBContext createContext(Class... clazz) {
-        try {
-            JAXBContext jaxbContext = newInstance(clazz);
-            log.info("Created context {}", jaxbContext.getClass());
-            return jaxbContext;
-        } catch (JAXBException e) {
-            String message = "Could not create instance of jaxb context for class " + clazz;
-            log.warn(message, e);
-            throw new RuntimeException("Could not create instance of jaxb context for class " + clazz, e);
-        }
     }
 }

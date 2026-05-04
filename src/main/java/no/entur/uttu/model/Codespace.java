@@ -19,6 +19,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import javax.validation.constraints.NotNull;
 
 import static no.entur.uttu.model.Constraints.CODESPACE_UNIQUE_XMLNS;
@@ -26,13 +29,15 @@ import static no.entur.uttu.model.Constraints.CODESPACE_UNIQUE_XMLNS;
 @Entity
 @Table(
         uniqueConstraints = {
-                                    @UniqueConstraint(name = CODESPACE_UNIQUE_XMLNS, columnNames = {"xmlns"})}
+                @UniqueConstraint(name = CODESPACE_UNIQUE_XMLNS, columnNames = {"xmlns"})}
 )
 @SequenceGenerator(
-        name = "code_space_seq_gen",
+        name = "identified_entity_gen",
         sequenceName = "code_space_seq",
         allocationSize = 10
 )
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class Codespace extends IdentifiedEntity {
 
     @NotNull
@@ -40,20 +45,4 @@ public class Codespace extends IdentifiedEntity {
 
     @NotNull
     private String xmlnsUrl;
-
-    public String getXmlnsUrl() {
-        return xmlnsUrl;
-    }
-
-    public void setXmlnsUrl(String xmlnsUrl) {
-        this.xmlnsUrl = xmlnsUrl;
-    }
-
-    public String getXmlns() {
-        return xmlns;
-    }
-
-    public void setXmlns(String xmlns) {
-        this.xmlns = xmlns;
-    }
 }

@@ -15,7 +15,6 @@
 
 package no.entur.uttu.graphql.fetchers;
 
-import no.entur.uttu.util.Preconditions;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import no.entur.uttu.graphql.ArgumentWrapper;
@@ -23,26 +22,27 @@ import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.repository.CodespaceRepository;
 import no.entur.uttu.repository.ProviderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import no.entur.uttu.util.Preconditions;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CODE;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_CODE_SPACE_XMLNS;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_ID;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_INPUT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NAME;
+import java.util.Optional;
+
+import static no.entur.uttu.graphql.GraphQLNames.*;
 import static org.rutebanken.helper.organisation.AuthorizationConstants.ROLE_ROUTE_DATA_ADMIN;
 
 @Component
 @Transactional
 public class ProviderUpdater implements DataFetcher<Provider> {
 
-    @Autowired
-    private ProviderRepository repository;
-    @Autowired
-    private CodespaceRepository codespaceRepository;
+    private final ProviderRepository repository;
+    private final CodespaceRepository codespaceRepository;
+
+    public ProviderUpdater(ProviderRepository repository, CodespaceRepository codespaceRepository) {
+        this.repository = repository;
+        this.codespaceRepository = codespaceRepository;
+    }
 
     @Override
     @PreAuthorize("hasRole('" + ROLE_ROUTE_DATA_ADMIN + "')")
@@ -54,11 +54,7 @@ public class ProviderUpdater implements DataFetcher<Provider> {
         if (code == null) {
             entity = new Provider();
         } else {
-            entity = repository.getOne(code);
-
-            if (entity == null) {
-                entity = new Provider();
-            }
+            entity = repository.findByCode(code).orElse(new Provider());
         }
 
         populateEntityFromInput(entity, input);
@@ -73,9 +69,9 @@ public class ProviderUpdater implements DataFetcher<Provider> {
     }
 
     private Codespace getVerifiedCodespace(String xmlns) {
-        Codespace codespace = codespaceRepository.getOneByXmlns(xmlns);
-        Preconditions.checkArgument(codespace != null,
+        Optional<Codespace> codespace = codespaceRepository.findByXmlns(xmlns);
+        Preconditions.checkArgument(codespace.isPresent(),
                 "Codespace not found [xmlns=%s]", xmlns);
-        return codespace;
+        return codespace.get();
     }
 }

@@ -16,16 +16,15 @@
 package no.entur.uttu.repository;
 
 import no.entur.uttu.model.Codespace;
+import no.entur.uttu.repository.generic.IdentifiedRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface CodespaceRepository {
+@Repository
+public interface CodespaceRepository extends IdentifiedRepository<Codespace> {
 
-    Codespace getOne(Long id);
+    Optional<Codespace> findByXmlns(String xmlns);
 
-    Codespace getOneByXmlns(String xmlns);
-
-    List<Codespace> findAll();
-
-    <S extends Codespace> S save(S entity);
 }
+

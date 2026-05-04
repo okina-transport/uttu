@@ -19,40 +19,36 @@ import no.entur.uttu.graphql.ArgumentWrapper;
 import no.entur.uttu.model.StopPointInJourneyPattern;
 import no.entur.uttu.repository.FlexibleStopPlaceRepository;
 import no.entur.uttu.repository.ProviderRepository;
+import no.entur.uttu.repository.StopRepository;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import no.entur.uttu.stopplace.StopPlaceRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_BOOKING_ARRANGEMENT;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_DESTINATION_DISPLAY;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FLEXIBLE_STOP_PLACE_REF;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FOR_ALIGHTING;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_FOR_BOARDING;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_NOTICES;
-import static no.entur.uttu.graphql.GraphQLNames.FIELD_QUAY_REF;
+import static no.entur.uttu.graphql.GraphQLNames.*;
 
 @Component
 public class StopPointInJourneyPatternMapper extends AbstractProviderEntityMapper<StopPointInJourneyPattern> {
 
-    @Autowired
-    private BookingArrangementMapper bookingArrangementMapper;
-    @Autowired
-    private FlexibleStopPlaceRepository flexibleStopPlaceRepository;
-    @Autowired
-    private DestinationDisplayMapper destinationDisplayMapper;
-    @Autowired
-    private NoticeMapper noticeMapper;
+    private final BookingArrangementMapper bookingArrangementMapper;
+    private final FlexibleStopPlaceRepository flexibleStopPlaceRepository;
+    private final DestinationDisplayMapper destinationDisplayMapper;
+    private final NoticeMapper noticeMapper;
+    private final StopRepository stopRepository;
 
-    @Autowired
-    private StopPlaceRegistry stopPlaceRegistry;
-
-    public StopPointInJourneyPatternMapper(@Autowired ProviderRepository providerRepository,
-                                           @Autowired ProviderEntityRepository<StopPointInJourneyPattern> entityRepository) {
+    public StopPointInJourneyPatternMapper(ProviderRepository providerRepository,
+                                           ProviderEntityRepository<StopPointInJourneyPattern> entityRepository,
+                                           BookingArrangementMapper bookingArrangementMapper,
+                                           FlexibleStopPlaceRepository flexibleStopPlaceRepository,
+                                           DestinationDisplayMapper destinationDisplayMapper,
+                                           NoticeMapper noticeMapper,
+                                           StopRepository stopRepository) {
         super(providerRepository, entityRepository);
-
-
+        this.bookingArrangementMapper = bookingArrangementMapper;
+        this.flexibleStopPlaceRepository = flexibleStopPlaceRepository;
+        this.destinationDisplayMapper = destinationDisplayMapper;
+        this.noticeMapper = noticeMapper;
+        this.stopRepository = stopRepository;
     }
+
 
     @Override
     protected StopPointInJourneyPattern createNewEntity(ArgumentWrapper input) {
@@ -62,16 +58,12 @@ public class StopPointInJourneyPatternMapper extends AbstractProviderEntityMappe
     @Override
     protected void populateEntityFromInput(StopPointInJourneyPattern entity, ArgumentWrapper input) {
         input.applyReference(FIELD_FLEXIBLE_STOP_PLACE_REF, flexibleStopPlaceRepository, entity::setFlexibleStopPlace);
-        input.apply(FIELD_QUAY_REF, this::getVerifiedQuayRef, entity::setQuayRef);
+        input.applyReference(FIELD_QUAY_REF, stopRepository, entity::setStop);
         input.apply(FIELD_BOOKING_ARRANGEMENT, bookingArrangementMapper::map, entity::setBookingArrangement);
         input.apply(FIELD_DESTINATION_DISPLAY, destinationDisplayMapper::map, entity::setDestinationDisplay);
         input.apply(FIELD_FOR_BOARDING, entity::setForBoarding);
         input.apply(FIELD_FOR_ALIGHTING, entity::setForAlighting);
         input.applyList(FIELD_NOTICES, noticeMapper::map, entity::setNotices);
-    }
-
-    protected String getVerifiedQuayRef(String quayRef) {
-        return stopPlaceRegistry.getStopPlaceByQuayRef(quayRef).isPresent() ? quayRef : null;
     }
 
 }

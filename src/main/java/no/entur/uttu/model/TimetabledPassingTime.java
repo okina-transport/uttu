@@ -17,24 +17,29 @@ package no.entur.uttu.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import no.entur.uttu.util.Preconditions;
 import no.entur.uttu.util.ValidationHelper;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @SequenceGenerator(
-        name = "timetabled_passing_time_gen",
+        name = "identified_entity_gen",
         sequenceName = "timetabled_passing_time_seq",
         allocationSize = 10
 )
+@Data
+@EqualsAndHashCode(callSuper = true, of = {"order", "departureTime", "arrivalTime", "earliestDepartureTime", "latestArrivalTime", "arrivalDayOffset", "departureDayOffset", "earliestDepartureDayOffset", "latestArrivalDayOffset"})
+@ToString(callSuper = true, of = {"order", "departureTime", "arrivalTime", "earliestDepartureTime", "latestArrivalTime", "arrivalDayOffset", "departureDayOffset", "earliestDepartureDayOffset", "latestArrivalDayOffset"})
 public class TimetabledPassingTime extends ProviderEntity {
 
-    @NotNull
-    @ManyToOne
+    @ManyToOne(optional = false)
     private ServiceJourney serviceJourney;
 
     // Order is reserved word in db
@@ -43,7 +48,7 @@ public class TimetabledPassingTime extends ProviderEntity {
     private int order;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Notice> notices;
+    private List<Notice> notices = new ArrayList<>();
 
     private LocalTime departureTime;
 
@@ -61,87 +66,6 @@ public class TimetabledPassingTime extends ProviderEntity {
 
     private int latestArrivalDayOffset;
 
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public LocalTime getEarliestDepartureTime() {
-        return earliestDepartureTime;
-    }
-
-    public void setEarliestDepartureTime(LocalTime earliestDepartureTime) {
-        this.earliestDepartureTime = earliestDepartureTime;
-    }
-
-    public LocalTime getLatestArrivalTime() {
-        return latestArrivalTime;
-    }
-
-    public void setLatestArrivalTime(LocalTime latestArrivalTime) {
-        this.latestArrivalTime = latestArrivalTime;
-    }
-
-    public ServiceJourney getServiceJourney() {
-        return serviceJourney;
-    }
-
-    public void setServiceJourney(ServiceJourney serviceJourney) {
-        this.serviceJourney = serviceJourney;
-    }
-
-    public LocalTime getDepartureTime() {
-        return departureTime;
-    }
-
-    public void setDepartureTime(LocalTime departureTime) {
-        this.departureTime = departureTime;
-    }
-
-    public LocalTime getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public void setArrivalTime(LocalTime arrivalTime) {
-        this.arrivalTime = arrivalTime;
-    }
-
-    public int getArrivalDayOffset() {
-        return arrivalDayOffset;
-    }
-
-    public void setArrivalDayOffset(int arrivalDayOffset) {
-        this.arrivalDayOffset = arrivalDayOffset;
-    }
-
-    public int getDepartureDayOffset() {
-        return departureDayOffset;
-    }
-
-    public void setDepartureDayOffset(int departureDayOffset) {
-        this.departureDayOffset = departureDayOffset;
-    }
-
-    public int getEarliestDepartureDayOffset() {
-        return earliestDepartureDayOffset;
-    }
-
-    public void setEarliestDepartureDayOffset(int earliestDepartureDayOffset) {
-        this.earliestDepartureDayOffset = earliestDepartureDayOffset;
-    }
-
-    public int getLatestArrivalDayOffset() {
-        return latestArrivalDayOffset;
-    }
-
-    public void setLatestArrivalDayOffset(int latestArrivalDayOffset) {
-        this.latestArrivalDayOffset = latestArrivalDayOffset;
-    }
-
-
     public TimetabledPassingTime withEarliestDepartureTime(LocalTime earliestDepartureTime) {
         this.earliestDepartureTime = earliestDepartureTime;
         return this;
@@ -151,7 +75,6 @@ public class TimetabledPassingTime extends ProviderEntity {
         this.latestArrivalTime = latestArrivalTime;
         return this;
     }
-
 
     public TimetabledPassingTime withDepartureTime(LocalTime departureTime) {
         this.departureTime = departureTime;
@@ -168,7 +91,6 @@ public class TimetabledPassingTime extends ProviderEntity {
         return this;
     }
 
-
     public TimetabledPassingTime withDepartureDayOffset(int departureDayOffset) {
         this.departureDayOffset = departureDayOffset;
         return this;
@@ -183,16 +105,6 @@ public class TimetabledPassingTime extends ProviderEntity {
         this.latestArrivalDayOffset = latestArrivalDayOffset;
         return this;
     }
-
-
-    public List<Notice> getNotices() {
-        return notices;
-    }
-
-    public void setNotices(List<Notice> notices) {
-        this.notices = notices;
-    }
-
 
     @Override
     public void checkPersistable() {

@@ -15,14 +15,17 @@
 
 package no.entur.uttu.model;
 
+import jakarta.persistence.Entity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.util.Preconditions;
-
-import jakarta.persistence.Entity;
 
 import static no.entur.uttu.error.codes.ErrorCodeEnumeration.FLEXIBLE_STOP_PLACE_NOT_ALLOWED;
 
 @Entity
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class FixedLine extends Line {
 
     private static final String NETEX_NAME = "Line";
@@ -40,14 +43,14 @@ public class FixedLine extends Line {
     }
 
     private void checkPersistableStopPointInPatterns(JourneyPattern jp) {
-        jp.getPointsInSequence().forEach(v -> {
-            Preconditions.checkArgument(
-                    v.getFlexibleStopPlace() == null,
-                    CodedError.fromErrorCode(FLEXIBLE_STOP_PLACE_NOT_ALLOWED),
-                    "Tried to set flexible stop place on StopPointInPattern on a fixed line journey pattern: %s",
-                    jp.name
-            );
-        });
+        jp.getPointsInSequence().forEach(v ->
+                Preconditions.checkArgument(
+                        v.getFlexibleStopPlace() == null,
+                        CodedError.fromErrorCode(FLEXIBLE_STOP_PLACE_NOT_ALLOWED),
+                        "Tried to set flexible stop place on StopPointInPattern on a fixed line journey pattern: %s",
+                        jp.name
+                )
+        );
     }
 
     @Override

@@ -20,7 +20,6 @@ import no.entur.uttu.export.ExportService;
 import no.entur.uttu.graphql.mappers.AbstractProviderEntityMapper;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.repository.generic.ProviderEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ExportUpdater extends AbstractProviderEntityUpdater<Export> {
 
-    @Autowired
-    private ExportService exportService;
+    private final ExportService exportService;
 
-
-
-    public ExportUpdater(AbstractProviderEntityMapper<Export> mapper, ProviderEntityRepository<Export> repository) {
+    public ExportUpdater(AbstractProviderEntityMapper<Export> mapper, ProviderEntityRepository<Export> repository, ExportService exportService) {
         super(mapper, repository);
+        this.exportService = exportService;
     }
 
 

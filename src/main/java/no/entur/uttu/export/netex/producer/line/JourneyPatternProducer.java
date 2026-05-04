@@ -15,36 +15,25 @@
 
 package no.entur.uttu.export.netex.producer.line;
 
+import jakarta.xml.bind.JAXBElement;
 import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.export.netex.producer.NetexIdProducer;
 import no.entur.uttu.export.netex.producer.NetexObjectFactory;
-import no.entur.uttu.model.BookingArrangement;
+import no.entur.uttu.model.*;
 import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.model.HailAndRideArea;
 import no.entur.uttu.model.JourneyPattern;
-import no.entur.uttu.model.Ref;
 import no.entur.uttu.model.StopPointInJourneyPattern;
 import no.entur.uttu.model.job.SeverityEnumeration;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
 import no.entur.uttu.util.DateUtils;
+import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.BookingAccessEnumeration;
-import org.rutebanken.netex.model.BookingArrangementsStructure;
 import org.rutebanken.netex.model.BookingMethodEnumeration;
-import org.rutebanken.netex.model.DestinationDisplayRefStructure;
-import org.rutebanken.netex.model.JourneyPatternRefStructure;
-import org.rutebanken.netex.model.NoticeAssignment;
-import org.rutebanken.netex.model.PointInLinkSequence_VersionedChildStructure;
-import org.rutebanken.netex.model.PointsInJourneyPattern_RelStructure;
 import org.rutebanken.netex.model.PurchaseMomentEnumeration;
 import org.rutebanken.netex.model.PurchaseWhenEnumeration;
-import org.rutebanken.netex.model.RouteRefStructure;
-import org.rutebanken.netex.model.ScheduledStopPoint;
-import org.rutebanken.netex.model.ScheduledStopPointRefStructure;
-import org.rutebanken.netex.model.StopPointInJourneyPatternRefStructure;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import jakarta.xml.bind.JAXBElement;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,14 +41,15 @@ import java.util.stream.Collectors;
 @Component
 public class JourneyPatternProducer {
 
-    @Autowired
-    private NetexObjectFactory objectFactory;
+    private final NetexObjectFactory objectFactory;
+    private final ContactStructureProducer contactStructureProducer;
+    private final StopPlaceRegistry stopPlaceRegistry;
 
-    @Autowired
-    private ContactStructureProducer contactStructureProducer;
-
-    @Autowired
-    private StopPlaceRegistry stopPlaceRegistry;
+    public JourneyPatternProducer(NetexObjectFactory objectFactory, ContactStructureProducer contactStructureProducer, StopPlaceRegistry stopPlaceRegistry) {
+        this.objectFactory = objectFactory;
+        this.contactStructureProducer = contactStructureProducer;
+        this.stopPlaceRegistry = stopPlaceRegistry;
+    }
 
     public org.rutebanken.netex.model.JourneyPattern produce(JourneyPattern local, List<NoticeAssignment> noticeAssignments, NetexExportContext context) {
         List<PointInLinkSequence_VersionedChildStructure> netexStopPoints = local.getPointsInSequence().stream().map(spinjp -> mapStopPointInJourneyPattern(spinjp, noticeAssignments, context)).collect(Collectors.toList());
@@ -71,15 +61,15 @@ public class JourneyPatternProducer {
         context.notices.addAll(local.getNotices());
 
         return objectFactory.populate(new org.rutebanken.netex.model.JourneyPattern(), local)
-                       .withRouteRef(routeRef)
-                       .withName(objectFactory.createMultilingualString(local.getName()))
-                       .withPointsInSequence(pointsInJourneyPattern_relStructure);
+                .withRouteRef(routeRef)
+                .withName(objectFactory.createMultilingualString(local.getName()))
+                .withPointsInSequence(pointsInJourneyPattern_relStructure);
     }
 
 
     private org.rutebanken.netex.model.StopPointInJourneyPattern mapStopPointInJourneyPattern(StopPointInJourneyPattern local,
-                                                                                                     List<NoticeAssignment> noticeAssignments,
-                                                                                                     NetexExportContext context) {
+                                                                                              List<NoticeAssignment> noticeAssignments,
+                                                                                              NetexExportContext context) {
         DestinationDisplayRefStructure destinationDisplayRefStructure = null;
         if (local.getDestinationDisplay() != null) {
             context.destinationDisplays.add(local.getDestinationDisplay());
@@ -104,8 +94,8 @@ public class JourneyPatternProducer {
             }
 
         } else {
-            addQuayRef(local.getQuayRef(), context);
-            stopRef = objectFactory.createScheduledStopPointRefFromQuayRef(local.getQuayRef(), context);
+            addQuayRef(local.getStop().getNetexId(), context);
+            stopRef = objectFactory.createScheduledStopPointRefFromQuayRef(local.getStop().getNetexId(), context);
         }
 
         Ref scheduledStopPointRef = NetexIdProducer.replaceEntityName(stopRef, ScheduledStopPoint.class.getSimpleName());
@@ -116,12 +106,12 @@ public class JourneyPatternProducer {
         context.notices.addAll(local.getNotices());
 
         return objectFactory.populateId(new org.rutebanken.netex.model.StopPointInJourneyPattern(), local.getRef())
-                       .withBookingArrangements(mapBookingArrangement(local.getBookingArrangement()))
-                       .withForAlighting(local.getForAlighting())
-                       .withForBoarding(local.getForBoarding())
-                       .withOrder(BigInteger.valueOf(local.getOrder()))
-                       .withDestinationDisplayRef(destinationDisplayRefStructure)
-                       .withScheduledStopPointRef(scheduledStopPointRefStructure);
+                .withBookingArrangements(mapBookingArrangement(local.getBookingArrangement()))
+                .withForAlighting(local.getForAlighting())
+                .withForBoarding(local.getForBoarding())
+                .withOrder(BigInteger.valueOf(local.getOrder()))
+                .withDestinationDisplayRef(destinationDisplayRefStructure)
+                .withScheduledStopPointRef(scheduledStopPointRefStructure);
     }
 
     private void addQuayRef(String quayRef, NetexExportContext context) {
@@ -137,14 +127,14 @@ public class JourneyPatternProducer {
             return null;
         }
         return new BookingArrangementsStructure()
-                       .withBookingAccess(objectFactory.mapEnum(local.getBookingAccess(), BookingAccessEnumeration.class))
-                       .withBookingMethods(objectFactory.mapEnums(local.getBookingMethods(), BookingMethodEnumeration.class))
-                       .withBookWhen(objectFactory.mapEnum(local.getBookWhen(), PurchaseWhenEnumeration.class))
-                       .withBuyWhen(objectFactory.mapEnums(local.getBuyWhen(), PurchaseMomentEnumeration.class))
-                       .withLatestBookingTime(local.getLatestBookingTime())
-                       .withMinimumBookingPeriod(DateUtils.getDuration(local).orElse(null))
-                       .withBookingNote(objectFactory.createMultilingualString(local.getBookingNote()))
-                       .withBookingContact(contactStructureProducer.mapContactStructure(local.getBookingContact()));
+                .withBookingAccess(objectFactory.mapEnum(local.getBookingAccess(), BookingAccessEnumeration.class))
+                .withBookingMethods(objectFactory.mapEnums(local.getBookingMethods(), BookingMethodEnumeration.class))
+                .withBookWhen(objectFactory.mapEnum(local.getBookWhen(), PurchaseWhenEnumeration.class))
+                .withBuyWhen(objectFactory.mapEnums(local.getBuyWhen(), PurchaseMomentEnumeration.class))
+                .withLatestBookingTime(local.getLatestBookingTime())
+                .withMinimumBookingPeriod(DateUtils.getDuration(local).orElse(null))
+                .withBookingNote(objectFactory.createMultilingualString(local.getBookingNote()))
+                .withBookingContact(contactStructureProducer.mapContactStructure(local.getBookingContact()));
 
     }
 }
