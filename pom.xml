@@ -398,12 +398,6 @@
             <artifactId>onebusaway-gtfs</artifactId>
             <version>${onebusaway.gtfs.modules}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.onebusaway</groupId>
-            <artifactId>onebusaway-gtfs-transformer</artifactId>
-            <version>${onebusaway.gtfs.modules}</version>
-        </dependency>
         <!-- Test-->
 
         <dependency>
