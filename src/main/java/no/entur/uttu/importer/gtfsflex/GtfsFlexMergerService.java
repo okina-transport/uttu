@@ -74,16 +74,16 @@ public class GtfsFlexMergerService {
     private Referential getDbReferential(Referential gtfsImportReferential) {
         Referential dbReferential = new Referential(gtfsImportReferential.getDataset());
 
-        for (var originalId : gtfsImportReferential.getProvidersByOriginalId().keySet()) {
-            providerRepository.findByDatasetIdAndOriginalId(gtfsImportReferential.getDataset(), originalId).ifPresent((entity -> dbReferential.getProvidersByOriginalId().put(originalId, entity)));
+        for (var provider : gtfsImportReferential.getProvidersByOriginalId().values()) {
+            providerRepository.findByCode(provider.getCode()).ifPresent((entity -> dbReferential.getProvidersByOriginalId().put(provider.getOriginalId(), entity)));
         }
 
-        for (var originalId : gtfsImportReferential.getCodespacesByOriginalId().keySet()) {
-            codespaceRepository.findByDatasetIdAndOriginalId(gtfsImportReferential.getDataset(), originalId).ifPresent((entity -> dbReferential.getCodespacesByOriginalId().put(originalId, entity)));
+        for (var codespace : gtfsImportReferential.getCodespacesByOriginalId().values()) {
+            codespaceRepository.findByXmlns(codespace.getXmlns()).ifPresent((entity -> dbReferential.getCodespacesByOriginalId().put(codespace.getOriginalId(), entity)));
         }
 
-        for (var originalId : gtfsImportReferential.getNetworksByOriginalId().keySet()) {
-            networkRepository.findByDatasetIdAndOriginalId(gtfsImportReferential.getDataset(), originalId).ifPresent((entity -> dbReferential.getNetworksByOriginalId().put(originalId, entity)));
+        for (var network : gtfsImportReferential.getNetworksByOriginalId().values()) {
+            networkRepository.findByName(network.getName()).ifPresent((entity -> dbReferential.getNetworksByOriginalId().put(network.getOriginalId(), entity)));
         }
 
         for (var originalId : gtfsImportReferential.getBookingArrangementsByOriginalId().keySet()) {
