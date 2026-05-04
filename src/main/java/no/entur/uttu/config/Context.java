@@ -16,6 +16,7 @@
 package no.entur.uttu.config;
 
 import no.entur.uttu.util.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -24,7 +25,15 @@ import java.util.Objects;
 
 public class Context {
 
-    private static ThreadLocal<String> providerPerThread = new ThreadLocal<>();
+    private static final ThreadLocal<String> providerPerThread = new ThreadLocal<>();
+    private static final ThreadLocal<String> usernamePerThread = new ThreadLocal<>();
+
+    private Context() {
+    }
+
+    public static String getProvider() {
+        return providerPerThread.get();
+    }
 
     public static void setProvider(String providerCode) {
         Preconditions.checkArgument(providerCode != null,
@@ -32,21 +41,26 @@ public class Context {
         providerPerThread.set(providerCode);
     }
 
-    public static String getProvider() {
-        return providerPerThread.get();
-    }
-
     public static void clear() {
         providerPerThread.remove();
+        usernamePerThread.remove();
     }
 
     public static String getUsername() {
+        if (StringUtils.isNotBlank(usernamePerThread.get())) {
+            return usernamePerThread.get();
+        }
         String user = "unknown";
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             user = Objects.toString(auth.getPrincipal());
         }
         return user;
+    }
+
+    public static void setUsername(String username) {
+        Preconditions.checkArgument(username != null, "Attempt to set username = null for session");
+        usernamePerThread.set(username);
     }
 
     public static String getVerifiedProviderCode() {

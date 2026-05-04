@@ -25,14 +25,16 @@ import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.activemq.ArtemisContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -45,12 +47,12 @@ import java.nio.file.Path;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = UttuTestApp.class)
 @ActiveProfiles({"google-pubsub-emulator", "test"})
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@Transactional
 public abstract class UttuIntegrationTest {
 
 
     private static final Path OAUTH_TOKEN = Path.of("src/test/resources/oauth/token.json");
     private static final PostgreSQLContainer postgres;
+    private static final ArtemisContainer artemis;
 
     static {
         postgres = new PostgreSQLContainer(DockerImageName.parse(
@@ -61,10 +63,18 @@ public abstract class UttuIntegrationTest {
                 .withPassword("uttu")
                 .withReuse(true);
         postgres.start();
+        artemis = new ArtemisContainer(DockerImageName.parse("registry.okina.fr/oki/activemq-artemis:2.38.0")
+                .asCompatibleSubstituteFor("apache/activemq-artemis"))
+                .withUser("uttu")
+                .withPassword("uttu")
+                .withReuse(true);
+        artemis.start();
     }
 
     @Value("${local.server.port}")
     protected int port;
+    @Autowired
+    protected JmsTemplate jmsTemplate;
     private MockWebServer oauthServerMock;
 
     @DynamicPropertySource
@@ -76,6 +86,11 @@ public abstract class UttuIntegrationTest {
         registry.add("spring.flyway.url", postgres::getJdbcUrl);
         registry.add("spring.flyway.user", postgres::getUsername);
         registry.add("spring.flyway.password", postgres::getPassword);
+
+        registry.add("spring.activemq.broker-url", artemis::getBrokerUrl);
+        registry.add("spring.activemq.user", artemis::getUser);
+        registry.add("spring.activemq.password", artemis::getPassword);
+        registry.add("activemq.broker.host", artemis::getHost);
     }
 
     @BeforeEach
@@ -83,6 +98,8 @@ public abstract class UttuIntegrationTest {
         oauthServerMock = new MockWebServer();
         oauthServerMock.setDispatcher(new OauthServerDispatcher());
         oauthServerMock.start(8080);
+        
+        jmsTemplate.setReceiveTimeout(30000);
     }
 
     @AfterEach

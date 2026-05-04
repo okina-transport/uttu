@@ -1,14 +1,17 @@
 package no.entur.uttu.importer;
 
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Session;
 import no.entur.uttu.UttuIntegrationTest;
 import no.entur.uttu.importer.gtfsflex.GtfsFlexImporterService;
 import no.entur.uttu.model.*;
 import no.entur.uttu.repository.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.MessageCreator;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -16,7 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GtfsFlexImporterServiceTest extends UttuIntegrationTest {
+class GtfsFlexImporterTest extends UttuIntegrationTest {
 
     private static final File GTFS_FLEX = new File("src/test/resources/data/gtfs-flex.zip");
     private static final File GTFS_FLEX_UPDATED = new File("src/test/resources/data/gtfs-flex-updated.zip");
@@ -57,11 +60,14 @@ class GtfsFlexImporterServiceTest extends UttuIntegrationTest {
     private TimetabledPassingTimeRepository timetabledPassingTimeRepository;
 
     @Test
-    void test_importGtfsFlex_whenImportingForFirstTime_thenCreatesNetexEntities() throws IOException {
-        tested.importGtfsFlex(GTFS_FLEX, "test");
+    void test_importGtfsFlex_whenImportingForFirstTime_thenCreatesNetexEntities() {
+        postFlexImportMessage("test", "testuser", GTFS_FLEX.getName());
+
+        Message m = jmsTemplate.receive("importGtfsFlexUttuCompleted");
+        assertNotNull(m);
 
         assertTrue(providerRepository.findByCode("test").isPresent(), "should create provider test");
-        assertTrue(codespaceRepository.findByXmlns("TEST").isPresent(), "should create codespace TEST");
+        assertTrue(codespaceRepository.findByXmlns("test").isPresent(), "should create codespace test");
         assertNotNull(networkRepository.findByName("TEST"), "network TEST should exist");
 
         assertEquals(1, bookingArrangementRepository.count(), "should create X booking arrangements");
@@ -306,9 +312,14 @@ class GtfsFlexImporterServiceTest extends UttuIntegrationTest {
     }
 
     @Test
-    void test_importGtfsFlex_whenReimporting_shouldNotUpdateEntities() throws IOException {
-        tested.importGtfsFlex(GTFS_FLEX, "test");
-        tested.importGtfsFlex(GTFS_FLEX, "test");
+    void test_importGtfsFlex_whenReimporting_shouldNotUpdateEntities() {
+        postFlexImportMessage("test", "testuser", GTFS_FLEX.getName());
+        Message m = jmsTemplate.receive("importGtfsFlexUttuCompleted");
+        assertNotNull(m);
+
+        postFlexImportMessage("test", "testuser", GTFS_FLEX.getName());
+        m = jmsTemplate.receive("importGtfsFlexUttuCompleted");
+        assertNotNull(m);
 
         bookingArrangementRepository.findAll().forEach(entity -> {
             assertEquals(0, entity.getVersion(), "should not update entity");
@@ -372,14 +383,19 @@ class GtfsFlexImporterServiceTest extends UttuIntegrationTest {
     }
 
     @Test
-    void test_importGtfsFlex_whenImportingUpdatedGtfs_shouldUpdateEntities() throws IOException {
-        tested.importGtfsFlex(GTFS_FLEX, "test");
-        tested.importGtfsFlex(GTFS_FLEX_UPDATED, "test");
+    void test_importGtfsFlex_whenImportingUpdatedGtfs_shouldUpdateEntities() {
+        postFlexImportMessage("test", "testuser", GTFS_FLEX.getName());
+        Message m = jmsTemplate.receive("importGtfsFlexUttuCompleted");
+        assertNotNull(m);
 
-        Optional<Provider> provider = providerRepository.findByDatasetIdAndOriginalId("TEST", "LEBUS:CLT_LB");
+        postFlexImportMessage("test", "testuser", GTFS_FLEX_UPDATED.getName());
+        m = jmsTemplate.receive("importGtfsFlexUttuCompleted");
+        assertNotNull(m);
+
+        Optional<Provider> provider = providerRepository.findByCode("test");
         assertTrue(provider.isPresent(), "should create provider");
-        assertEquals(1, provider.get().getVersion(), "should update version");
-        assertEquals("Le Bus - C.C. du Clermontois 2", provider.get().getName(), "should update version");
+        assertEquals(0, provider.get().getVersion(), "should not update version");
+        assertEquals("Test provider", provider.get().getName(), "should not update name");
 
         Optional<OperatingPeriod> operatingPeriod = operatingPeriodRepository.findByDatasetIdAndOriginalId("TEST", "401");
         assertTrue(operatingPeriod.isPresent(), "should create operating period");
@@ -423,6 +439,25 @@ class GtfsFlexImporterServiceTest extends UttuIntegrationTest {
         assertEquals(1, timetabledPassingTime.get().getVersion(), "should update version");
         assertEquals(LocalTime.of(14, 0, 0), timetabledPassingTime.get().getEarliestDepartureTime());
         assertEquals(LocalTime.of(18, 30, 0), timetabledPassingTime.get().getLatestArrivalTime());
+    }
+
+
+    /**
+     * @param referential to import GTFS FLEX data to
+     * @param user        importing GTFS flex
+     * @param filename    GTFS flex file to import
+     */
+    private void postFlexImportMessage(String referential, String user, String filename) {
+        jmsTemplate.send("importGtfsFlexUttuQueue", new MessageCreator() {
+            @Override
+            public Message createMessage(Session session) throws JMSException {
+                Message message = session.createMessage();
+                message.setStringProperty("x-okina-referential", referential);
+                message.setStringProperty("RutebankenUser", user);
+                message.setStringProperty("gtfsFlexFile", filename);
+                return message;
+            }
+        });
     }
 
 }

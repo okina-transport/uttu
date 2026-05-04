@@ -1,6 +1,7 @@
 package no.entur.uttu.routes;
 
 import lombok.extern.slf4j.Slf4j;
+import no.entur.uttu.config.Context;
 import no.entur.uttu.importer.gtfsflex.GtfsFlexImporterService;
 import no.entur.uttu.job.JobService;
 import no.entur.uttu.model.job.Job;
@@ -40,6 +41,8 @@ public class ImportGtfsFlexProcessor implements Processor {
         Job job = jobService.createImportJob(fileName, gtfsFlexImportFolder.toString(), user, referential);
         exchange.getIn().setHeader(JOB_ID, job.getId());
         try {
+            Context.setUsername(user);
+            Context.setProvider(referential.toLowerCase());
             importService.importGtfsFlex(gtfsZipFile, referential);
             jobService.updateJob(job, JobStatus.FINISHED, gtfsZipFile.getName(), null);
             log.info("Gtfs flex import finished (job.id: {})", job.getId());
@@ -48,6 +51,8 @@ public class ImportGtfsFlexProcessor implements Processor {
             log.error("Gtfs flex import failed (job.id: {})", job.getId(), e);
             jobService.updateJob(job, JobStatus.FAILED, gtfsZipFile.getName(), "Erreur technique");
             exchange.getIn().setHeader(UTTU_IMPORT_STATUS, "ERROR");
+        } finally {
+            Context.clear();
         }
     }
 }

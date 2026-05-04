@@ -1,7 +1,6 @@
 package no.entur.uttu.importer.gtfsflex;
 
 import lombok.extern.slf4j.Slf4j;
-import no.entur.uttu.config.Context;
 import org.onebusaway.gtfs.impl.GtfsDaoImpl;
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.serialization.GtfsReader;
@@ -27,7 +26,6 @@ public class GtfsFlexImporterService {
 
     @Transactional
     public void importGtfsFlex(File gtfsZip, String datasetId) throws IOException {
-        Context.setProvider(datasetId.toLowerCase());
         GtfsReader gtfsReader = readGtfsFlexEntitiesFromGtfsZip(gtfsZip);
         Referential gtfsImportReferential = gtfsFlexMapperService.mapGtfsFlexToNetex(gtfsReader, datasetId);
         gtfsFlexIdMapperService.mapIds(gtfsImportReferential, datasetId);
