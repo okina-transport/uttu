@@ -32,6 +32,33 @@ public class BookingArrangementEntityUpdater implements EntityUpdater<BookingArr
             updated = true;
         }
 
+        if (!Objects.equals(newEntity.getPriorNoticeDurationMax(), dbEntity.getPriorNoticeDurationMax())) {
+            dbEntity.setPriorNoticeDurationMax(newEntity.getPriorNoticeDurationMax());
+            updated = true;
+        }
+
+        if (!Objects.equals(newEntity.getPriorNoticeLastDay(), dbEntity.getPriorNoticeLastDay())) {
+            dbEntity.setPriorNoticeLastDay(newEntity.getPriorNoticeLastDay());
+            updated = true;
+        }
+
+        if (!Objects.equals(newEntity.getPriorNoticeStartDay(), dbEntity.getPriorNoticeStartDay())) {
+            dbEntity.setPriorNoticeStartDay(newEntity.getPriorNoticeStartDay());
+            updated = true;
+        }
+
+        if (!Objects.equals(newEntity.getPriorNoticeStartTime(), dbEntity.getPriorNoticeStartTime())) {
+            dbEntity.setPriorNoticeStartTime(newEntity.getPriorNoticeStartTime());
+            updated = true;
+        }
+
+        if (!Objects.equals(newEntity.getServiceId(), dbEntity.getServiceId())) {
+            dbEntity.setServiceId(newEntity.getServiceId());
+            updated = true;
+        }
+
+
+
         return updated;
     }
 

@@ -97,8 +97,8 @@ public abstract class UttuIntegrationTest {
     void beforeEach() throws IOException {
         oauthServerMock = new MockWebServer();
         oauthServerMock.setDispatcher(new OauthServerDispatcher());
-        oauthServerMock.start(8080);
-        
+        oauthServerMock.start(6666);
+
         jmsTemplate.setReceiveTimeout(30000);
     }
 

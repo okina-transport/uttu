@@ -7,8 +7,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.onebusaway.gtfs.model.StopTime;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
+
 import java.time.LocalTime;
+
+import static no.entur.uttu.util.DateUtils.ONE_DAY_IN_SECONDS;
 
 @Slf4j
 @Component
@@ -16,7 +18,7 @@ public class StopTimeMapper implements Mapper<StopTime> {
 
     private static final int GTFS_NO_PICKUP = 1;
     private static final int GTFS_NO_DROP_OFF = 1;
-    private static final long ONE_DAY_IN_SECONDS = Duration.ofDays(1).toSeconds();
+
 
     @Override
     public void map(StopTime entity, Referential gtfsImportReferential) {

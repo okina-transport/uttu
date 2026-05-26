@@ -4,6 +4,7 @@ import no.entur.uttu.importer.gtfsflex.merger.FlexibleLineMerger;
 import no.entur.uttu.importer.gtfsflex.merger.StopPointInJourneyPatternMerger;
 import no.entur.uttu.importer.gtfsflex.merger.TimetabledPassingTimeMerger;
 import no.entur.uttu.model.FlexibleLine;
+import no.entur.uttu.model.Network;
 import no.entur.uttu.model.StopPointInJourneyPattern;
 import no.entur.uttu.model.TimetabledPassingTime;
 import no.entur.uttu.repository.*;
@@ -83,7 +84,11 @@ public class GtfsFlexMergerService {
         }
 
         for (var network : gtfsImportReferential.getNetworksByOriginalId().values()) {
-            networkRepository.findByName(network.getName()).ifPresent((entity -> dbReferential.getNetworksByOriginalId().put(network.getOriginalId(), entity)));
+            Network existingNetwork = networkRepository.findByNetexId(network.getNetexId());
+            if (existingNetwork != null){
+                existingNetwork.setName(network.getName());
+                dbReferential.getNetworksByOriginalId().put(network.getOriginalId(), existingNetwork);
+            }
         }
 
         for (var originalId : gtfsImportReferential.getBookingArrangementsByOriginalId().keySet()) {
