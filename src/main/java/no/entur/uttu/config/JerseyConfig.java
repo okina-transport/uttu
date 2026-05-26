@@ -15,6 +15,7 @@
 
 package no.entur.uttu.config;
 
+import no.entur.uttu.export.resource.AdminResource;
 import no.entur.uttu.export.resource.ExportFileDownloadResource;
 import no.entur.uttu.graphql.resource.*;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -44,6 +45,7 @@ public class JerseyConfig {
             register(LinesGraphQLResource.class);
             register(ProviderGraphQLResource.class);
             register(ExportFileDownloadResource.class);
+            register(AdminResource.class);
             register(ExportedLineStatisticsGraphQLResource.class);
         }
     }

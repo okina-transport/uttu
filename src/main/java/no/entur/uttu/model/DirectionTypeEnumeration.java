@@ -40,4 +40,12 @@ public enum DirectionTypeEnumeration {
         return this.value;
     }
 
+    public String toDirectionId() {
+        return switch (this) {
+            case INBOUND -> "0";
+            case OUTBOUND -> "1";
+            default -> throw new IllegalArgumentException("No directionId for: " + this);
+        };
+    }
+
 }

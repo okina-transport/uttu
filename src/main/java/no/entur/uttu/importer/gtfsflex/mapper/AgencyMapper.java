@@ -25,7 +25,7 @@ public class AgencyMapper implements Mapper<Agency> {
         provider.setCodespace(codespace);
 
         Network network = gtfsImportReferential.getNetwork(gtfsEntity.getId());
-        network.setName(gtfsImportReferential.getDataset());
+        network.setName(gtfsEntity.getName());
         network.setAuthorityRef(String.format("%s:Authority:%s", gtfsImportReferential.getDataset().toUpperCase(), gtfsEntity.getId()));
         network.setProvider(provider);
 

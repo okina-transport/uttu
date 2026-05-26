@@ -49,6 +49,19 @@ public class JobService {
         return jobRepository.save(job);
     }
 
+    public Job createExportJob(String fileName, String folder, String username, String provider) {
+        Job job = new Job();
+        job.setFileName(fileName);
+        job.setType(JobType.GTFS);
+        job.setAction(JobAction.EXPORT);
+        job.setStatus(JobStatus.PROCESSING);
+        job.setStarted(Instant.now());
+        job.setSubFolder(folder);
+        job.setUserName(username);
+        job.setProvider(provider);
+        return jobRepository.save(job);
+    }
+
     public void updateJob(Job job, JobStatus status, String fileName, String errorMessage) {
         job.setStatus(status);
         job.setFinished(Instant.now());

@@ -54,4 +54,21 @@ public class BookingArrangement extends IdentifiedEntity {
 
     @OneToOne(cascade = CascadeType.ALL)
     private Contact bookingContact;
+
+    @Column(name = "prior_notice_duration_max")
+    private Integer priorNoticeDurationMax;
+
+    @Column(name = "prior_notice_last_day")
+    private Integer priorNoticeLastDay;
+
+    @Column(name = "prior_notice_start_day")
+    private Integer priorNoticeStartDay;
+
+    @Column(name = "prior_notice_start_time")
+    private LocalTime priorNoticeStartTime;
+
+    @Column(name = "service_id")
+    private String serviceId;
+
+
 }

@@ -40,7 +40,7 @@ import java.util.Optional;
 public class DateUtils {
 
 
-
+    public static final int ONE_DAY_IN_SECONDS = Math.toIntExact(java.time.Duration.ofDays(1).toSeconds());
 
     private final static DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd")
                                                                .optionalStart().appendPattern("XXXXX").optionalEnd()

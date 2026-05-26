@@ -38,6 +38,26 @@ public class BookingRuleMapper implements Mapper<BookingRule> {
             bookingArrangement.setLatestBookingTime(LocalTime.ofSecondOfDay(gtfsEntity.getPriorNoticeLastTime()));
         }
 
+        if (gtfsEntity.getPriorNoticeDurationMax() != NO_VALUE){
+            bookingArrangement.setPriorNoticeDurationMax(gtfsEntity.getPriorNoticeDurationMax());
+        }
+
+        if (gtfsEntity.getPriorNoticeLastDay() != NO_VALUE){
+            bookingArrangement.setPriorNoticeLastDay(gtfsEntity.getPriorNoticeLastDay());
+        }
+
+        if (gtfsEntity.getPriorNoticeStartDay() != NO_VALUE){
+            bookingArrangement.setPriorNoticeStartDay(gtfsEntity.getPriorNoticeStartDay());
+        }
+
+        if (gtfsEntity.getPriorNoticeStartTime() != NO_VALUE){
+            bookingArrangement.setPriorNoticeStartTime(LocalTime.ofSecondOfDay(gtfsEntity.getPriorNoticeStartTime()));
+        }
+
+        if (gtfsEntity.getPriorNoticeServiceId() != null){
+            bookingArrangement.setServiceId(gtfsEntity.getPriorNoticeServiceId().getId());
+        }
+
         if (StringUtils.isBlank(gtfsEntity.getPhoneNumber()) && StringUtils.isBlank(gtfsEntity.getUrl()) && StringUtils.isBlank(gtfsEntity.getInfoUrl()) && StringUtils.isBlank(gtfsEntity.getMessage()) && StringUtils.isBlank(gtfsEntity.getPickupMessage()) && StringUtils.isBlank(gtfsEntity.getDropOffMessage())) {
             log.info("No contact information for booking rule {}", gtfsEntity.getId().getId());
             return;

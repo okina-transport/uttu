@@ -22,4 +22,7 @@ public interface ProviderEntityRepository<T extends ProviderEntity> extends Iden
     @Query("delete from #{#entityName} as e where e.netexId = :netexId")
     void deleteByNetexId(String netexId);
 
+    @Query("select count(*) from #{#entityName} as e where e.provider.code in :code")
+    Long countByProviderCode(String code);
+
 }

@@ -1,6 +1,8 @@
 package no.entur.uttu.graphql.mappers;
 
 import no.entur.uttu.graphql.ArgumentWrapper;
+import no.entur.uttu.model.FixedLine;
+import no.entur.uttu.model.FlexibleLine;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.model.job.ExportLineAssociation;
 import no.entur.uttu.repository.FixedLineRepository;
@@ -27,12 +29,17 @@ public class ExportLineAssociationMapper {
         exportLineAssociation.setExport(export);
 
         String ref = input.get(FIELD_LINE_REF);
-        if (ref.contains("FlexibleLine")) {
-            input.applyReference(FIELD_LINE_REF, flexibleLineRepository, exportLineAssociation::setLine);
-        } else {
-            input.applyReference(FIELD_LINE_REF, fixedLineRepository, exportLineAssociation::setLine);
-        }
 
+        FlexibleLine line = flexibleLineRepository.findByNetexId(ref);
+        if (line != null){
+            exportLineAssociation.setLine(line);
+        }else{
+            FixedLine fixedLine = fixedLineRepository.findByNetexId(ref);
+            if (fixedLine == null){
+                throw new IllegalArgumentException("Line not found: " + ref);
+            }
+            exportLineAssociation.setLine(fixedLine);
+        }
         return exportLineAssociation;
     }
 }
