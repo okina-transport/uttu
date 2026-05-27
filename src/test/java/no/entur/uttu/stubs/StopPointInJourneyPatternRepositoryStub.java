@@ -106,6 +106,11 @@ public class StopPointInJourneyPatternRepositoryStub implements StopPointInJourn
     }
 
     @Override
+    public Long countByProviderCode(String code) {
+        return 0L;
+    }
+
+    @Override
     public void deleteAll() {
         // unused
     }
