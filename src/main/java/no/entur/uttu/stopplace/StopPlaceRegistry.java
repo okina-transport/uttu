@@ -17,6 +17,7 @@ package no.entur.uttu.stopplace;
 
 import no.entur.uttu.model.StopPlaceView;
 import org.locationtech.jts.geom.Polygon;
+import org.onebusaway.gtfs.model.Stop;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +25,5 @@ import java.util.Optional;
 public interface StopPlaceRegistry {
     Optional<org.rutebanken.netex.model.StopPlace> getStopPlaceByQuayRef(String quayRef);
     List<StopPlaceView> getMembersForArea(Polygon polygon);
+    void createTadQuays(String provider, List<StopPlaceView> stopPlaceViews);
 }
