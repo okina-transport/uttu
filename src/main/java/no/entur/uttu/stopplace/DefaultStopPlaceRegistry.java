@@ -26,6 +26,7 @@ import no.entur.uttu.config.NetexHttpMessageConverter;
 import no.entur.uttu.model.StopPlaceView;
 import no.entur.uttu.security.TokenService;
 import org.locationtech.jts.geom.Polygon;
+import org.onebusaway.gtfs.model.Stop;
 import org.rutebanken.netex.model.StopPlace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,42 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
         headers.set(ET_CLIENT_ID_HEADER, clientId);
         headers.set("Authorization", "Bearer " + tokenService.getToken());
         return new HttpEntity<>(headers);
+    }
+
+    public void createTadQuays(String provider, List<StopPlaceView> stops) {
+        HttpURLConnection connection = null;
+        try {
+
+            URL url = URI.create(stopPlaceRegistryUrl + "netex/createTADquays").toURL();
+
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-type", "application/json");
+            connection.setRequestProperty("provider", provider);
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Authorization", "Bearer " + tokenService.getToken());
+            OutputStream outputStream = connection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+            String jsonStops = new ObjectMapper().writeValueAsString(stops);
+            System.out.println("=========>JSON" + jsonStops);
+            writer.write(jsonStops);
+            writer.close();
+
+
+            //connection.connect();
+            InputStream inputStream = connection.getInputStream();
+            String resultString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
+
+
+        } catch (IOException e) {
+            InputStream errorStream = connection.getErrorStream();
+            if (errorStream != null) {
+                String error = new BufferedReader(new InputStreamReader(errorStream))
+                        .lines().collect(Collectors.joining("\n"));
+                System.out.println("Error response: " + error);
+            }
+            throw new RuntimeException("Error while getting members for area", e);
+        }
     }
 
     public List<StopPlaceView> getMembersForArea(Polygon polygon) {
