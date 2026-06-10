@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.entur.uttu.config.Context;
 import no.entur.uttu.exporter.gtfsflex.GtfsFlexExporterService;
 import no.entur.uttu.job.JobService;
+import no.entur.uttu.model.IdFormat;
 import no.entur.uttu.model.job.Job;
 import no.entur.uttu.model.job.JobStatus;
 import org.apache.camel.Exchange;
@@ -34,6 +35,7 @@ public class ExportGtfsFlexProcessor implements Processor {
         String referential = exchange.getIn().getHeader(OKINA_REFERENTIAL, String.class).replace("mobiiti_", "").toUpperCase();
         String user = exchange.getIn().getHeader(USER_HEADER, String.class);
         String fileName = exchange.getIn().getHeader(GTFS_FLEX_FILE, String.class);
+        IdFormat formatId = exchange.getIn().getHeader(ID_FORMAT, IdFormat.class);
         log.info("Launching gtfs flex import for provider: {}", referential);
 
 
@@ -42,7 +44,7 @@ public class ExportGtfsFlexProcessor implements Processor {
         try {
             Context.setUsername(user);
             Context.setProvider(referential.toLowerCase());
-            gtfsFlexExporterService.exportGtfsFlex(referential, job.getId());
+            gtfsFlexExporterService.exportGtfsFlex(referential, job.getId(), formatId);
 
             jobService.updateJob(job, JobStatus.FINISHED, "", null);
             log.info("Gtfs flex export finished (job.id: {})", job.getId());
