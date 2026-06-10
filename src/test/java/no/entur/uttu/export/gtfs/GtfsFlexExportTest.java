@@ -4,7 +4,7 @@ import no.entur.uttu.UttuIntegrationTest;
 import no.entur.uttu.exporter.gtfsflex.GtfsFlexExporterService;
 import no.entur.uttu.importer.gtfsflex.GtfsFlexImporterService;
 
-import no.entur.uttu.repository.FlexibleLineRepository;
+import no.entur.uttu.model.IdFormat;
 import org.geojson.GeoJsonObject;
 import org.geojson.LngLatAlt;
 import org.geojson.Polygon;
@@ -29,9 +29,6 @@ public class GtfsFlexExportTest extends UttuIntegrationTest {
     private GtfsFlexImporterService importerService;
 
     @Autowired
-    private FlexibleLineRepository flexibleLineRepository;
-
-    @Autowired
     private GtfsFlexExporterService exporterService;
 
     private static final  String TEST_DATASET = "DAT1";
@@ -52,7 +49,7 @@ public class GtfsFlexExportTest extends UttuIntegrationTest {
         importerService.importGtfsFlex(fileToImport, TEST_DATASET);
 
         // STEP 2 : launch export
-        exporterService.exportGtfsFlex(TEST_DATASET.toLowerCase(), JOB_ID);
+        exporterService.exportGtfsFlex(TEST_DATASET.toLowerCase(), JOB_ID, IdFormat.SOURCE);
 
         // STEP 3 : check exported file
         GtfsReader gtfsReader = importerService.readGtfsFlexEntitiesFromGtfsZip(exportedFilePath.toFile());

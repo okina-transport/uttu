@@ -16,6 +16,7 @@
 package no.entur.uttu.stubs;
 
 import no.entur.uttu.config.NetexHttpMessageConverter;
+import no.entur.uttu.model.QuayView;
 import no.entur.uttu.model.StopPlaceView;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
 import org.locationtech.jts.geom.Polygon;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class StopPlaceRegistryStub implements StopPlaceRegistry {
@@ -63,5 +65,15 @@ public class StopPlaceRegistryStub implements StopPlaceRegistry {
     public List<StopPlaceView> getMembersForArea(Polygon polygon) {
 
         return null;
+    }
+
+    @Override
+    public void createTadQuays(String provider, List<StopPlaceView> stopPlaceViews) {
+        
+    }
+
+    @Override
+    public List<QuayView> getQuayListFromRegistry(String provider, Set<String> originalIds) {
+        return List.of();
     }
 }

@@ -1,11 +1,13 @@
 package no.entur.uttu.exporter.gtfsflex;
 
 import lombok.extern.slf4j.Slf4j;
+import no.entur.uttu.cache.TadQuayIdCache;
 import no.entur.uttu.model.*;
 import no.entur.uttu.repository.BookingArrangementRepository;
 import no.entur.uttu.repository.FlexibleLineRepository;
 import no.entur.uttu.repository.FlexibleStopPlaceRepository;
 import no.entur.uttu.repository.ServiceJourneyRepository;
+import no.entur.uttu.stopplace.StopPlaceRegistry;
 import no.entur.uttu.util.FileUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.onebusaway.gtfs.model.*;
@@ -20,34 +22,37 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static no.entur.uttu.Constants.QUAY_KEY;
 
 @Service
 @Slf4j
 public class GtfsFlexExporterService {
-
-
     private final FlexibleStopPlaceRepository flexibleStopPlaceRepository;
     private final BookingArrangementRepository bookingArrangementRepository;
     private final ServiceJourneyRepository serviceJourneyRepository;
     private final FlexibleLineRepository flexibleLineRepository;
+    private final StopPlaceRegistry stopPlaceregistry;
     public static final String EXPORT_DIR = "gtfsExports";
+    private final TadQuayIdCache tadQuayIdCache;
 
     private final Path exportPath;
 
-    public GtfsFlexExporterService(FlexibleStopPlaceRepository flexibleStopPlaceRepository, BookingArrangementRepository bookingArrangementRepository, ServiceJourneyRepository serviceJourneyRepository, FlexibleLineRepository flexibleLineRepository, @Value("${uttu.storage.path:/tmp/uttu}") Path uttuStoragePath) {
+    public GtfsFlexExporterService(FlexibleStopPlaceRepository flexibleStopPlaceRepository, BookingArrangementRepository bookingArrangementRepository, ServiceJourneyRepository serviceJourneyRepository, FlexibleLineRepository flexibleLineRepository, StopPlaceRegistry stopPlaceregistry, TadQuayIdCache tadQuayIdCache, @Value("${uttu.storage.path:/tmp/uttu}") Path uttuStoragePath) {
         this.flexibleStopPlaceRepository = flexibleStopPlaceRepository;
         this.bookingArrangementRepository = bookingArrangementRepository;
         this.serviceJourneyRepository = serviceJourneyRepository;
         this.flexibleLineRepository = flexibleLineRepository;
+        this.stopPlaceregistry = stopPlaceregistry;
+        this.tadQuayIdCache = tadQuayIdCache;
         this.exportPath = uttuStoragePath.resolve(EXPORT_DIR);
     }
 
     @Transactional
-    public void exportGtfsFlex(String provider, Long jobId) throws IOException {
+    public void exportGtfsFlex(String provider, Long jobId, IdFormat formatId) throws IOException {
         Path jobPath = exportPath.resolve(String.valueOf(jobId));
         File outputDir = new File(jobPath.toUri());
         outputDir.getParentFile().mkdirs();
@@ -56,10 +61,10 @@ public class GtfsFlexExporterService {
         writer.setOutputLocation(outputDir);
         generateAgencies(provider, writer);
         generateLocations(provider, jobId);
-        generateLocationGroups(provider,  writer);
+        generateLocationGroups(provider, writer, formatId);
         generateBookingArrangements(provider, writer);
         generateTrips(provider, writer);
-        generateStopTimes(provider, writer);
+        generateStopTimes(provider, writer, formatId);
         generateRoutes(provider, writer);
         generateCalendars(provider, writer);
         writer.close();
@@ -68,6 +73,11 @@ public class GtfsFlexExporterService {
         FileUtils.deleteFilesByExtension(jobPath.toAbsolutePath().toString(), ".txt");
         FileUtils.deleteFilesByExtension(jobPath.toAbsolutePath().toString(), ".geojson");
 
+    }
+
+    private void applyTridentId(String provider, AgencyAndId agencyAndId) {
+        String mobiItiId = tadQuayIdCache.getMobiItiNetexIdOrFallback(provider + QUAY_KEY + agencyAndId.getId());
+        agencyAndId.setId(mobiItiId);
     }
 
     private void generateAgencies(String provider, GtfsWriter writer) {
@@ -140,27 +150,74 @@ public class GtfsFlexExporterService {
         return lines;
     }
 
-    private void generateStopTimes(String provider, GtfsWriter writer) {
+    private void generateStopTimes(String provider, GtfsWriter writer, IdFormat formatId) {
         List<ServiceJourney> serviceJourneys = getServiceJourneysForProvider(provider);
 
         if (CollectionUtils.isEmpty(serviceJourneys)){
             return;
         }
-        Set<String> alreadySeenStops = new HashSet<>();
 
+        Set<String> netexIds = new HashSet<>();
+        List<List<StopTime>> allStopTimes = new ArrayList<>();
         for (ServiceJourney serviceJourney : serviceJourneys) {
             List<StopTime> stopTimes = PassingTimeMapper.map(serviceJourney);
+            allStopTimes.add(stopTimes);
+            for (StopTime st : stopTimes) {
+                if (st.getStop() != null && st.getStop().getId() != null && st.getStop().getId().getId() != null) {
+                    netexIds.add(provider + QUAY_KEY + st.getStop().getId().getId());
+                }
+            }
+        }
+
+        if (netexIds.isEmpty()) {
+            return;
+        }
+
+        Set<String> netexIdList = new HashSet<>(netexIds);
+        List<QuayView> quayViews = stopPlaceregistry.getQuayListFromRegistry(provider, netexIdList);
+
+        Map<String, QuayView> quayByNetexId = quayViews.stream()
+                .filter(qv -> qv.getImportedId() != null)
+                .collect(Collectors.toMap(QuayView::getImportedId, Function.identity(), (a, b) -> a));
+
+        Set<String> alreadySeenStops = new HashSet<>();
+
+        for (List<StopTime> stopTimes : allStopTimes) {
             for (StopTime stopTime : stopTimes) {
                 writer.handleEntity(stopTime);
 
-                if (stopTime.getStop() != null && !alreadySeenStops.contains(stopTime.getStop().getId().getId())){
-                    Stop stop = new Stop();
-                    stop.setId(stopTime.getStop().getId());
-                    writer.handleEntity(stop);
-                    alreadySeenStops.add(stopTime.getStop().getId().getId());
+                if (stopTime.getStop() != null && stopTime.getStop().getId() != null) {
+                    String stopId = stopTime.getStop().getId().getId();
+                    if (!alreadySeenStops.contains(stopId)) {
+                        Stop stop = new Stop();
+                        stop.setId(stopTime.getStop().getId());
+                        if(formatId.equals(IdFormat.TRIDENT)) {
+                            applyTridentId(provider, stop.getId());
+                        }
+
+                        QuayView qv = quayByNetexId.get(provider + QUAY_KEY + stopId);
+                        if (qv != null) {
+                            if (qv.getName() != null) {
+                                stop.setName(qv.getName());
+                            }
+                            if (qv.getLatitude() != null) {
+                                stop.setLat(qv.getLatitude().doubleValue());
+                            }
+                            if (qv.getLongitude() != null) {
+                                stop.setLon(qv.getLongitude().doubleValue());
+                            }
+                            if (formatId.equals(IdFormat.TRIDENT) && qv.getNetexStopPlaceId() != null) {
+                                stop.setParentStation(qv.getNetexStopPlaceId());
+                            } else {
+                                stop.setParentStation(qv.getStopPlaceImportedId());
+                            }
+                        }
+
+                        writer.handleEntity(stop);
+                        alreadySeenStops.add(stopId);
+                    }
                 }
             }
-
         }
     }
 
@@ -208,7 +265,7 @@ public class GtfsFlexExporterService {
 
     }
 
-    private void generateLocationGroups(String provider, GtfsWriter writer) {
+    private void generateLocationGroups(String provider, GtfsWriter writer, IdFormat formatId) {
         List<FlexibleStopPlace> flexibleStopPlaces = getFlexibleStopPlacesForProvider(provider);
 
         if (CollectionUtils.isEmpty(flexibleStopPlaces)) {
@@ -221,8 +278,16 @@ public class GtfsFlexExporterService {
                 LocationGroup locationGroup = FlexibleStopPlaceToLocationGroupMapper.map(flexibleStopPlace);
                 writer.handleEntity(locationGroup);
                 List<LocationGroupElement> groupStops = FlexibleStopPlaceToLocationGroupMapper.getLocationGroupStops(flexibleStopPlace);
-                if (CollectionUtils.isNotEmpty(groupStops)){
-                    groupStops.forEach(writer::handleEntity);
+
+                for (LocationGroupElement stopLocation : groupStops) {
+                    if (formatId.equals(IdFormat.TRIDENT)
+                            && stopLocation.getStop() != null
+                            && stopLocation.getStop().getId().getId() != null) {
+                        AgencyAndId stopId = stopLocation.getStop().getId();
+                        applyTridentId(provider, stopId);
+                    }
+
+                    writer.handleEntity(stopLocation);
                 }
             }
         }

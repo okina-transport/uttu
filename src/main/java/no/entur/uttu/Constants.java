@@ -8,6 +8,8 @@ public class Constants {
     public static final String UTTU_IMPORT_STATUS = "uttuImportStatus";
     public static final String FLEX_EXPORT_STATUS = "FlexExportStatus";
     public static final String GTFS_FLEX_FILE = "gtfsFlexFile";
+    public static final String ID_FORMAT = "ID_FORMAT";
+    public static final String QUAY_KEY = ":Quay:";
 
     private Constants() {
         throw new IllegalStateException("Utility class");

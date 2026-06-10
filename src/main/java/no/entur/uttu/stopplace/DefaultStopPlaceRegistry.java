@@ -23,16 +23,22 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jakarta.annotation.PostConstruct;
 import no.entur.uttu.config.NetexHttpMessageConverter;
+import no.entur.uttu.model.DTO.QuayIdMapping;
+import no.entur.uttu.model.QuayView;
 import no.entur.uttu.model.StopPlaceView;
+import no.entur.uttu.cache.TadQuayIdCache;
 import no.entur.uttu.security.TokenService;
+import org.jspecify.annotations.NonNull;
 import org.locationtech.jts.geom.Polygon;
-import org.onebusaway.gtfs.model.Stop;
 import org.rutebanken.netex.model.StopPlace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -60,6 +66,8 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
     private static final String ET_CLIENT_NAME_HEADER = "ET-Client-Name";
     private final RestTemplate restTemplate = new RestTemplate();
     private final TokenService tokenService;
+    private final TadQuayIdCache tadQuayIdCache;
+
     @Value("${http.client.name:uttu}")
     private String clientName;
 
@@ -73,18 +81,18 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
             .expireAfterWrite(6, TimeUnit.HOURS)
             .build(new CacheLoader<>() {
                 @Override
-                public org.rutebanken.netex.model.StopPlace load(String quayRef) {
+                public org.rutebanken.netex.model.StopPlace load(@NonNull String quayRef) {
                     return lookupStopPlaceByQuayRef(quayRef);
                 }
             });
 
-    public DefaultStopPlaceRegistry(TokenService tokenService) {
+    public DefaultStopPlaceRegistry(TokenService tokenService, TadQuayIdCache tadQuayIdCache) {
         this.tokenService = tokenService;
+        this.tadQuayIdCache = tadQuayIdCache;
     }
 
     @PostConstruct
     private void setup() {
-        restTemplate.getMessageConverters().clear();
         restTemplate.getMessageConverters().add(new NetexHttpMessageConverter());
     }
 
@@ -132,39 +140,76 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
         return new HttpEntity<>(headers);
     }
 
+    private <T> HttpEntity<T> createHttpEntity(T body, MediaType mediaType, String provider) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        headers.setAccept(Collections.singletonList(mediaType));
+        headers.set(ET_CLIENT_NAME_HEADER, clientName);
+        headers.set(ET_CLIENT_ID_HEADER, clientId);
+        headers.set("Authorization", "Bearer " + tokenService.getToken());
+        headers.set("provider", provider);
+        return new HttpEntity<>(body, headers);
+    }
+
     public void createTadQuays(String provider, List<StopPlaceView> stops) {
-        HttpURLConnection connection = null;
         try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                    stopPlaceRegistryUrl + "netex/createTADquays"
+            );
 
-            URL url = URI.create(stopPlaceRegistryUrl + "netex/createTADquays").toURL();
+            HttpEntity<List<StopPlaceView>> entity = createHttpEntity(
+                    stops,
+                    MediaType.APPLICATION_JSON,
+                    provider
+            );
 
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-type", "application/json");
-            connection.setRequestProperty("provider", provider);
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Authorization", "Bearer " + tokenService.getToken());
-            OutputStream outputStream = connection.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
-            String jsonStops = new ObjectMapper().writeValueAsString(stops);
-            System.out.println("=========>JSON" + jsonStops);
-            writer.write(jsonStops);
-            writer.close();
+            ResponseEntity<List<QuayIdMapping>> response = restTemplate.exchange(
+                    builder.build().encode().toUri(),
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<>() {}
+            );
+            if (response.getBody() != null) {
+                Map<String, String> mappingMap = response.getBody().stream()
+                        .filter(m -> m.getUttuNetexId() != null && m.getTiamatSuperId() != null)
+                        .collect(Collectors.toMap(
+                                QuayIdMapping::getUttuNetexId,
+                                QuayIdMapping::getTiamatSuperId,
+                                (a, b) -> b
+                        ));
 
-
-            //connection.connect();
-            InputStream inputStream = connection.getInputStream();
-            String resultString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
-
-
-        } catch (IOException e) {
-            InputStream errorStream = connection.getErrorStream();
-            if (errorStream != null) {
-                String error = new BufferedReader(new InputStreamReader(errorStream))
-                        .lines().collect(Collectors.joining("\n"));
-                System.out.println("Error response: " + error);
+                tadQuayIdCache.putAll(mappingMap);
             }
-            throw new RuntimeException("Error while getting members for area", e);
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            logger.error("Tiamat error response: {}", e.getResponseBodyAsString());
+            throw new RuntimeException("Error while creating TAD quays for provider: " + provider, e);
+        }
+    }
+
+    public List<QuayView> getQuayListFromRegistry(String provider, Set<String> originalIds) {
+        try {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(
+                    stopPlaceRegistryUrl + "netex/quays"
+            );
+
+            HttpEntity<Set<String>> entity = createHttpEntity(
+                    originalIds,
+                    MediaType.APPLICATION_JSON,
+                    provider
+            );
+
+            ResponseEntity<List<QuayView>> response = restTemplate.exchange(
+                    builder.build().encode().toUri(),
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            return response.getBody() != null ? response.getBody() : List.of();
+
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            logger.error("Registry error response: {}", e.getResponseBodyAsString());
+            throw new RuntimeException("Error while getting quay list for provider: " + provider, e);
         }
     }
 
@@ -178,7 +223,7 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
             HashMap<String, String> postDataParams = new HashMap<>();
 
             URL url = URI.create(stopPlaceRegistryUrl + "netex/getTADStopPlaces?" + getPostDataString(postDataParams)).toURL();
-            HttpURLConnection connection = null;
+            HttpURLConnection connection;
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-type", "application/json");
@@ -189,8 +234,6 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
             writer.write(polygon.toString());
             writer.close();
 
-
-            //connection.connect();
             InputStream inputStream = connection.getInputStream();
             String resultString = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
 
@@ -202,7 +245,7 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
     private List<StopPlaceView> convertJSONtoObjects(String jsonDisruptions) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(jsonDisruptions, new TypeReference<List<StopPlaceView>>() {
+        return objectMapper.readValue(jsonDisruptions, new TypeReference<>() {
         });
     }
 
