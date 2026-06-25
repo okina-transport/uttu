@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,8 +24,8 @@ public class TadQuayIdCache {
     private final ConcurrentHashMap<String, String> quayMappings = new ConcurrentHashMap<>();
     private final QuayMappingFetcher quayMappingFetcher;
 
-    @Value("${mapping.quays.gcs.path}")
-    private String quayMappingPath;
+    @Value("${tiamat.storage.path}")
+    private Path tiamatPath;
 
     @Value("${uttu.tad.quay.cache.refresh.frequency.min:60}")
     private int refreshFrequencyMin;
@@ -53,7 +54,7 @@ public class TadQuayIdCache {
 
     public void refreshCache() {
         synchronized (LOCK) {
-            Map<String, String> fresh = quayMappingFetcher.fetchQuayMapping(quayMappingPath);
+            Map<String, String> fresh = quayMappingFetcher.fetchQuayMapping(tiamatPath.resolve("technique").resolve("quayIdMappings.csv").toAbsolutePath().toString());
             if (fresh.isEmpty()) {
                 log.warn("TadQuayIdCache: file is empty or inaccessible; cache retained ({} entries)",
                         quayMappings.size());
