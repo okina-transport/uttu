@@ -25,11 +25,12 @@ public class GtfsFlexImporterService {
     }
 
     @Transactional
-    public void importGtfsFlex(File gtfsZip, String datasetId) throws IOException {
+    public Referential importGtfsFlex(File gtfsZip, String datasetId) throws IOException {
         GtfsReader gtfsReader = readGtfsFlexEntitiesFromGtfsZip(gtfsZip);
         Referential gtfsImportReferential = gtfsFlexMapperService.mapGtfsFlexToNetex(gtfsReader, datasetId);
         gtfsFlexIdMapperService.mapIds(gtfsImportReferential, datasetId);
         gtfsFlexMergerService.merge(gtfsImportReferential);
+        return gtfsImportReferential;
     }
 
     /**

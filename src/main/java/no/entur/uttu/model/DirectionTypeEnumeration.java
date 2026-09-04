@@ -29,6 +29,9 @@ public enum DirectionTypeEnumeration {
     }
 
     public static DirectionTypeEnumeration fromDirectionId(String directionId) {
+        if (directionId == null) {
+            return null;
+        }
         return switch (directionId) {
             case "0" -> INBOUND;
             case "1" -> OUTBOUND;

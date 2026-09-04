@@ -32,7 +32,9 @@ public class ServiceJourneyMapper {
             routeId.setId(lineId);
             tripRoute.setId(routeId);
             trip.setRoute(tripRoute);
-            trip.setDirectionId(serviceJourney.getJourneyPattern().getDirectionType().toDirectionId());
+            if (serviceJourney.getJourneyPattern().getDirectionType() != null) {
+                trip.setDirectionId(serviceJourney.getJourneyPattern().getDirectionType().toDirectionId());
+            }
         }else{
             log.warn("Trip without journey pattern : {}", serviceJourney.getPk());
         }

@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -50,54 +51,53 @@ public class GtfsFlexMapperService {
         Referential gtfsImportReferential = new Referential(datasetId.toUpperCase());
 
         Collection<Agency> agencies = gtfsReader.getEntityStore().getAllEntitiesForType(Agency.class);
-        if (CollectionUtils.isNotEmpty(agencies)) {
-            agencies.forEach(agency -> agencyMapper.map(agency, gtfsImportReferential));
-        }
+        mapEntities(agencies, agency -> agencyMapper.map(agency, gtfsImportReferential), "agency.txt");
 
         Collection<BookingRule> bookingRules = gtfsReader.getEntityStore().getAllEntitiesForType(BookingRule.class);
-        if (CollectionUtils.isNotEmpty(bookingRules)) {
-            bookingRules.forEach(bookingRule -> bookingRuleMapper.map(bookingRule, gtfsImportReferential));
-        }
+        mapEntities(bookingRules, bookingRule -> bookingRuleMapper.map(bookingRule, gtfsImportReferential), "booking_rules.txt");
 
         Collection<ServiceCalendar> calendars = gtfsReader.getEntityStore().getAllEntitiesForType(ServiceCalendar.class);
-        if (CollectionUtils.isNotEmpty(calendars)) {
-            calendars.forEach(calendar -> calendarMapper.map(calendar, gtfsImportReferential));
-        }
+        mapEntities(calendars, calendar -> calendarMapper.map(calendar, gtfsImportReferential), "calendar.txt");
 
         Collection<ServiceCalendarDate> calendarDates = gtfsReader.getEntityStore().getAllEntitiesForType(ServiceCalendarDate.class);
-        if (CollectionUtils.isNotEmpty(calendarDates)) {
-            calendarDates.forEach(calendarDate -> calendarDateMapper.map(calendarDate, gtfsImportReferential));
-        }
+        mapEntities(calendarDates, calendarDate -> calendarDateMapper.map(calendarDate, gtfsImportReferential), "calendar_dates.txt");
 
         Collection<Location> locations = gtfsReader.getEntityStore().getAllEntitiesForType(Location.class);
-        if (CollectionUtils.isNotEmpty(locations)) {
-            locations.forEach(location -> locationMapper.map(location, gtfsImportReferential));
-        }
+        mapEntities(locations, location -> locationMapper.map(location, gtfsImportReferential), "locations.geojson");
 
         Collection<LocationGroup> locationGroups = gtfsReader.getEntityStore().getAllEntitiesForType(LocationGroup.class);
+        mapEntities(locationGroups, locationGroup -> locationGroupMapper.map(locationGroup, gtfsImportReferential), "location_groups.txt");
         if (CollectionUtils.isNotEmpty(locationGroups)) {
-            locationGroups.forEach(locationGroup -> locationGroupMapper.map(locationGroup, gtfsImportReferential));
             sendStopsToTiamat(datasetId, locationGroups);
         }
 
         Collection<Route> routes = gtfsReader.getEntityStore().getAllEntitiesForType(Route.class);
-        if (CollectionUtils.isNotEmpty(routes)) {
-            routes.forEach(route -> routeMapper.map(route, gtfsImportReferential));
-        }
+        mapEntities(routes, route -> routeMapper.map(route, gtfsImportReferential), "routes.txt");
 
         Collection<StopTime> stopTimes = gtfsReader.getEntityStore().getAllEntitiesForType(StopTime.class);
+        mapEntities(stopTimes, stopTime -> stopTimeMapper.map(stopTime, gtfsImportReferential), "stop_times.txt");
         if (CollectionUtils.isNotEmpty(stopTimes)) {
-            stopTimes.forEach(stopTime -> stopTimeMapper.map(stopTime, gtfsImportReferential));
             sendStopTimesToTiamat(datasetId, stopTimes);
         }
 
         Collection<Trip> trips = gtfsReader.getEntityStore().getAllEntitiesForType(Trip.class);
-        if (CollectionUtils.isNotEmpty(trips)) {
-            trips.forEach(trip -> tripMapper.map(trip, gtfsImportReferential));
-        }
+        mapEntities(trips, trip -> tripMapper.map(trip, gtfsImportReferential), "trips.txt");
 
         log.info("Finished mapping GTFS flex entities to NETEX entities");
         return gtfsImportReferential;
+    }
+
+    private <T> void mapEntities(Collection<T> entities, Consumer<T> mapperFn, String fileName) {
+        if (CollectionUtils.isEmpty(entities)) {
+            return;
+        }
+        for (T entity : entities) {
+            try {
+                mapperFn.accept(entity);
+            } catch (RuntimeException e) {
+                throw new GtfsFileMappingException(fileName, e);
+            }
+        }
     }
 
     private void sendStopsToTiamat(String datasetId, Collection<LocationGroup> locationGroups) {

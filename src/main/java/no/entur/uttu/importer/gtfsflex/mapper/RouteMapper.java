@@ -2,6 +2,7 @@ package no.entur.uttu.importer.gtfsflex.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import no.entur.uttu.importer.gtfsflex.Referential;
+import no.entur.uttu.importer.gtfsflex.validation.RouteValidator;
 import no.entur.uttu.model.FlexibleLine;
 import no.entur.uttu.model.FlexibleLineTypeEnumeration;
 import no.entur.uttu.model.VehicleModeEnumeration;
@@ -14,9 +15,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class RouteMapper implements Mapper<Route> {
 
+    private final RouteValidator routeValidator;
+
+    public RouteMapper(RouteValidator routeValidator) {
+        this.routeValidator = routeValidator;
+    }
+
     @Override
     public void map(Route gtfsEntity, Referential gtfsImportReferential) {
         log.info("Mapping route {}", gtfsEntity.getId().getId());
+        routeValidator.validate(gtfsEntity);
         FlexibleLine flexibleLine = gtfsImportReferential.getFlexibleLine(gtfsEntity.getId().getId());
 
         flexibleLine.setPublicCode(gtfsEntity.getShortName());

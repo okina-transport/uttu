@@ -2,21 +2,26 @@ package no.entur.uttu.job;
 
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.UriInfo;
+import no.entur.uttu.model.DTO.GtfsFlexImportJobDTO;
 import no.entur.uttu.model.job.*;
+import no.entur.uttu.repository.ImportReportRepository;
 import no.entur.uttu.repository.JobRepository;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class JobService {
 
     private final JobRepository jobRepository;
+    private final ImportReportRepository importReportRepository;
 
-    JobService(JobRepository jobRepository){
+    JobService(JobRepository jobRepository, ImportReportRepository importReportRepository){
         this.jobRepository = jobRepository;
+        this.importReportRepository = importReportRepository;
     }
 
     public Job getJobById(long id) {
@@ -36,7 +41,7 @@ public class JobService {
         throw new ServiceException("subFolder = " + subFolder + " ,id = " + id);
     }
 
-    public Job createImportJob(String fileName, String folder, String username, String provider) {
+    public Job createImportJob(String fileName, String folder, String username, String provider, String correlationId) {
         Job job = new Job();
         job.setFileName(fileName);
         job.setType(JobType.GTFS);
@@ -46,7 +51,12 @@ public class JobService {
         job.setSubFolder(folder);
         job.setUserName(username);
         job.setProvider(provider);
+        job.setCorrelationId(correlationId);
         return jobRepository.save(job);
+    }
+
+    public Optional<Job> getJobByCorrelationId(String correlationId) {
+        return jobRepository.findByCorrelationId(correlationId);
     }
 
     public Job createExportJob(String fileName, String folder, String username, String provider) {
@@ -73,6 +83,15 @@ public class JobService {
     public JobInfo getTerminatedJob(Long jobId, String referential, UriInfo uriInfo) {
         Job job = jobRepository.terminatedJob(referential, jobId);
         return new JobInfo(job, uriInfo);
+    }
+
+    public void saveImportReport(Long jobId, ImportReport report) {
+        report.setJob(jobRepository.getReferenceById(jobId));
+        importReportRepository.save(report);
+    }
+
+    public Optional<GtfsFlexImportJobDTO> getJobDetails(Long jobId) {
+        return jobRepository.findById(jobId).map(GtfsFlexImportJobDTO::new);
     }
 }
 
