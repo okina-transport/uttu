@@ -2,6 +2,7 @@ package no.entur.uttu.importer.gtfsflex.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import no.entur.uttu.importer.gtfsflex.Referential;
+import no.entur.uttu.importer.gtfsflex.validation.StopTimeValidator;
 import no.entur.uttu.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.onebusaway.gtfs.model.StopTime;
@@ -19,6 +20,11 @@ public class StopTimeMapper implements Mapper<StopTime> {
     private static final int GTFS_NO_PICKUP = 1;
     private static final int GTFS_NO_DROP_OFF = 1;
 
+    private final StopTimeValidator stopTimeValidator;
+
+    public StopTimeMapper(StopTimeValidator stopTimeValidator) {
+        this.stopTimeValidator = stopTimeValidator;
+    }
 
     @Override
     public void map(StopTime entity, Referential gtfsImportReferential) {
@@ -62,6 +68,7 @@ public class StopTimeMapper implements Mapper<StopTime> {
         timetabledPassingTime.setProvider(gtfsImportReferential.getProvider(entity.getTrip().getId().getAgencyId()));
 
         StopPointInJourneyPattern stopPointInJourneyPattern = gtfsImportReferential.getStopPointInJourneyPattern(entity.getTrip().getId().getId(), entity.getStopSequence());
+        stopTimeValidator.validate(entity, stopPointInJourneyPattern);
         stopPointInJourneyPattern.setOrder(entity.getStopSequence() + 1);
 
         String frontText = StringUtils.isNotBlank(entity.getStopHeadsign()) ? entity.getStopHeadsign() : entity.getTrip().getTripHeadsign();
@@ -98,6 +105,5 @@ public class StopTimeMapper implements Mapper<StopTime> {
         JourneyPattern journeyPattern = gtfsImportReferential.getJourneyPattern(entity.getTrip().getId().getId());
         journeyPattern.addPointInSequence(stopPointInJourneyPattern);
     }
-
 
 }

@@ -24,6 +24,7 @@ public class Job {
 
     private String fileName;
 
+    @Column(length = 2000)
     private String message;
 
     private Instant started;
@@ -44,6 +45,11 @@ public class Job {
     private String provider;
 
     private String subFolder;
+
+    private String correlationId;
+
+    @OneToOne(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private ImportReport importReport;
 
     @Transient
     private List<Link> links = new ArrayList<>();
@@ -155,6 +161,22 @@ public class Job {
         return links;
     }
 
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    public ImportReport getImportReport() {
+        return importReport;
+    }
+
+    public void setImportReport(ImportReport importReport) {
+        this.importReport = importReport;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -168,6 +190,7 @@ public class Job {
                 .add("finished", finished)
                 .add("message", message)
                 .add("userName", userName)
+                .add("correlationId", correlationId)
                 .toString();
     }
 }

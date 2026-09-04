@@ -2,6 +2,7 @@ package no.entur.uttu.importer.gtfsflex.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import no.entur.uttu.importer.gtfsflex.Referential;
+import no.entur.uttu.importer.gtfsflex.validation.BookingRuleValidator;
 import no.entur.uttu.model.BookingArrangement;
 import no.entur.uttu.model.Contact;
 import no.entur.uttu.model.PurchaseWhenEnumeration;
@@ -18,9 +19,16 @@ import static org.onebusaway.gtfs.model.BookingRule.NO_VALUE;
 @Slf4j
 public class BookingRuleMapper implements Mapper<BookingRule> {
 
+    private final BookingRuleValidator bookingRuleValidator;
+
+    public BookingRuleMapper(BookingRuleValidator bookingRuleValidator) {
+        this.bookingRuleValidator = bookingRuleValidator;
+    }
+
     @Override
     public void map(BookingRule gtfsEntity, Referential gtfsImportReferential) {
         log.info("Mapping booking rule {}", gtfsEntity.getId().getId());
+        bookingRuleValidator.validate(gtfsEntity);
 
         BookingArrangement bookingArrangement = gtfsImportReferential.getBookingArrangement(gtfsEntity.getId().getId());
         switch (gtfsEntity.getType()) {
