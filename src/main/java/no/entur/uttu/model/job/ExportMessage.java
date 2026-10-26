@@ -31,6 +31,7 @@ import java.text.MessageFormat;
 public class ExportMessage implements Comparable<ExportMessage> {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "export_message_seq_gen")
     protected Long pk;
 
     @NotNull
