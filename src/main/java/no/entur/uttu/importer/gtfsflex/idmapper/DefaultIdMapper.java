@@ -24,7 +24,7 @@ public class DefaultIdMapper implements IdMapper {
 
     @Override
     public Map<String, String> buildLineOriginalToNetexIdsMap(Set<String> originalIds, String datasetId) {
-        return buildDefaultIdMapForType(originalIds, "%s:Line:%s", datasetId);
+        return buildDefaultIdMapForType(originalIds, "%s:FlexibleLine:%s", datasetId);
     }
 
     @Override

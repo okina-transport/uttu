@@ -12,4 +12,8 @@ public interface CompanyRegistry {
     String getVerifiedAuthorityRef(String authorityRef);
     String getVerifiedOperatorRef(String operatorRef);
 
+    String getDefaultOperatorRef();
+
+    String getDefaultAuthorityRef();
+
 }

@@ -16,6 +16,7 @@
 package no.entur.uttu.export.netex;
 
 
+import lombok.Getter;
 import no.entur.uttu.export.model.AvailabilityPeriod;
 import no.entur.uttu.model.DayType;
 import no.entur.uttu.model.DestinationDisplay;
@@ -25,6 +26,7 @@ import no.entur.uttu.model.Network;
 import no.entur.uttu.model.Notice;
 import no.entur.uttu.model.Provider;
 import no.entur.uttu.model.Ref;
+import no.entur.uttu.model.Stop;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.model.job.ExportMessage;
 import no.entur.uttu.model.job.SeverityEnumeration;
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class NetexExportContext {
 
+    @Getter
     private AvailabilityPeriod availabilityPeriod;
 
     public Provider provider;
@@ -61,6 +64,8 @@ public class NetexExportContext {
 
     public Set<DestinationDisplay> destinationDisplays = new HashSet<>();
 
+    public Map<String, String> mobiItiQuayIdsByStopNetexId = new HashMap<>();
+
     private Map<String, AtomicLong> idSequences = new HashMap<>();
 
     private Export export;
@@ -73,10 +78,6 @@ public class NetexExportContext {
 
     public void updateAvailabilityPeriod(AvailabilityPeriod newPeriod) {
         availabilityPeriod = newPeriod.union(availabilityPeriod);
-    }
-
-    public AvailabilityPeriod getAvailabilityPeriod() {
-        return availabilityPeriod;
     }
 
     public long getAndIncrementIdSequence(String entityName) {
@@ -93,6 +94,10 @@ public class NetexExportContext {
             }
         }
         return sequence.getAndIncrement();
+    }
+
+    public String getQuayRef(Stop stop) {
+        return mobiItiQuayIdsByStopNetexId.getOrDefault(stop.getNetexId(), stop.getNetexId());
     }
 
     public <I extends IdentifiedEntity> boolean isValid(I entity) {
