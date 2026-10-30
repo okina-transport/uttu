@@ -21,6 +21,7 @@ import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.FlexibleArea;
 import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.model.HailAndRideArea;
+import no.entur.uttu.model.Stop;
 import no.entur.uttu.model.StopPlaceView;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,12 +51,14 @@ public class FlexibleStopPlaceProducer {
     }
 
     private org.rutebanken.netex.model.FlexibleStopPlace mapFlexibleStopPlace(FlexibleStopPlace localStopPlace, NetexExportContext context) {
-        FlexibleStopPlace_VersionStructure.Areas areas = new FlexibleStopPlace_VersionStructure.Areas();
+        FlexibleStopPlace_VersionStructure.Areas areas = null;
         if (CollectionUtils.isNotEmpty(localStopPlace.getFlexibleAreas())) {
+            areas = new FlexibleStopPlace_VersionStructure.Areas();
             for (FlexibleArea flexibleArea : localStopPlace.getFlexibleAreas()) {
                 areas.withFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea(mapFlexibleArea(flexibleArea, localStopPlace, context));
             }
-        } else {
+        } else if (localStopPlace.getHailAndRideArea() != null) {
+            areas = new FlexibleStopPlace_VersionStructure.Areas();
             areas.withFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea(mapHailAndRideArea(localStopPlace, context));
         }
 
@@ -69,13 +72,17 @@ public class FlexibleStopPlaceProducer {
                 .withAreas(areas)
                 .withKeyList(netexObjectFactory.mapKeyValues(localStopPlace.getKeyValues()));
 
-        //For fixedStopAreas, we need to write members in the area
-        feedMembers(netexFlexibleStopPlace, localStopPlace);
+        feedMembers(netexFlexibleStopPlace, localStopPlace, context);
 
         return netexFlexibleStopPlace;
     }
 
-    private void feedMembers(org.rutebanken.netex.model.FlexibleStopPlace netexFlexibleStopPlace, FlexibleStopPlace originalStop) {
+    private void feedMembers(org.rutebanken.netex.model.FlexibleStopPlace netexFlexibleStopPlace, FlexibleStopPlace originalStop, NetexExportContext context) {
+        if (CollectionUtils.isNotEmpty(originalStop.getStops())) {
+            netexFlexibleStopPlace.withMembers(convertStopsToRefs(originalStop.getStops(), context));
+            return;
+        }
+
         Optional<String> areaTypeOpt = getStopAreaType(netexFlexibleStopPlace);
 
         if (areaTypeOpt.isEmpty() || !areaTypeOpt.get().equals("UnrestrictedPublicTransportAreas")) {
@@ -99,6 +106,13 @@ public class FlexibleStopPlaceProducer {
 
     }
 
+    private PointRefs_RelStructure convertStopsToRefs(List<Stop> stops, NetexExportContext context) {
+        List<JAXBElement<? extends PointRefStructure>> pointRefList = stops.stream()
+                .map(stop -> objectFactory.createPointRef(new PointRefStructure().withRef(context.getQuayRef(stop))))
+                .collect(Collectors.toList());
+        return new PointRefs_RelStructure().withPointRef(pointRefList);
+    }
+
     private PointRefs_RelStructure convertStopplacesToRefs(List<no.entur.uttu.model.StopPlaceView> stopPlaces) {
 
         PointRefs_RelStructure pointRefs = new PointRefs_RelStructure();
@@ -116,6 +130,9 @@ public class FlexibleStopPlaceProducer {
     }
 
     private Optional<String> getStopAreaType(org.rutebanken.netex.model.FlexibleStopPlace stopArea) {
+        if (stopArea.getKeyList() == null) {
+            return Optional.empty();
+        }
 
         for (KeyValueStructure keyValueStructure : stopArea.getKeyList().getKeyValue()) {
             if (keyValueStructure.getKey().equals("FlexibleStopAreaType")) {

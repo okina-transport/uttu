@@ -22,6 +22,7 @@ import no.entur.uttu.export.netex.NetexFile;
 import no.entur.uttu.export.netex.producer.NetexIdProducer;
 import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.Ref;
+import no.entur.uttu.model.Stop;
 import no.entur.uttu.stopplace.StopPlaceRegistry;
 import no.entur.uttu.util.ExportUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -176,6 +178,11 @@ public class NetexCommonFileProducer {
         }
 
         no.entur.uttu.model.FlexibleStopPlace flexibleStop = flexibleStopOpt.get();
+        if (CollectionUtils.isNotEmpty(flexibleStop.getStops())) {
+            getLocationFromStops(flexibleStop, context).ifPresent(point::setLocation);
+            return;
+        }
+
         Optional<Point> centroidOpt = getCentroidFromFlexibleStopPlace(flexibleStop);
 
         centroidOpt.ifPresent(centroid -> {
@@ -212,6 +219,9 @@ public class NetexCommonFileProducer {
 
         StopPlace foundStopPlace = stopPlaceOpt.get();
         Optional<LocationStructure> locationOpt = getLocationFromQuay(foundStopPlace, quayId);
+        if (locationOpt.isEmpty()) {
+            log.error("Quay {} not found in stopplace {}", quayId, foundStopPlace.getId());
+        }
         locationOpt.ifPresent(point::setLocation);
     }
 
@@ -227,6 +237,35 @@ public class NetexCommonFileProducer {
             }
         }
         return Optional.empty();
+    }
+
+    private Optional<LocationStructure> getLocationFromStops(no.entur.uttu.model.FlexibleStopPlace flexibleStop, NetexExportContext context) {
+        List<LocationStructure> quayLocations = new ArrayList<>();
+        for (Stop stop : flexibleStop.getStops()) {
+            String quayId = context.getQuayRef(stop);
+            Optional<StopPlace> stopPlaceOpt = stopPlaceRegistry.getStopPlaceByQuayRef(quayId);
+            if (stopPlaceOpt.isEmpty()) {
+                log.error("Unable to find stopplace for quay id: {} (stop: {})", quayId, stop.getNetexId());
+                continue;
+            }
+            Optional<LocationStructure> quayLocation = getLocationFromQuay(stopPlaceOpt.get(), quayId);
+            if (quayLocation.isEmpty()) {
+                log.error("Quay {} (stop: {}) not found in stopplace {}", quayId, stop.getNetexId(), stopPlaceOpt.get().getId());
+                continue;
+            }
+            quayLocations.add(quayLocation.get());
+        }
+
+        if (quayLocations.isEmpty()) {
+            log.error("no located quay for flexible stop place: {}", flexibleStop.getNetexId());
+            return Optional.empty();
+        }
+
+        BigDecimal count = BigDecimal.valueOf(quayLocations.size());
+        LocationStructure location = new LocationStructure();
+        location.setLatitude(quayLocations.stream().map(LocationStructure::getLatitude).reduce(BigDecimal.ZERO, BigDecimal::add).divide(count, MathContext.DECIMAL64));
+        location.setLongitude(quayLocations.stream().map(LocationStructure::getLongitude).reduce(BigDecimal.ZERO, BigDecimal::add).divide(count, MathContext.DECIMAL64));
+        return Optional.of(location);
     }
 
     private Optional<Point> getCentroidFromFlexibleStopPlace(no.entur.uttu.model.FlexibleStopPlace flexibleStop) {

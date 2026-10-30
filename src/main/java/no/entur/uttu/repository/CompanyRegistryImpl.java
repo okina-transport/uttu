@@ -207,15 +207,19 @@ public class CompanyRegistryImpl implements CompanyRegistry {
         }
         Optional<GeneralOrganisation> organisation = getOperator(operatorRef);
         if (organisation.isEmpty()){
-            return getDefaultOperator();
+            return getDefaultOperatorRef();
         }
         return operatorRef;
     }
 
-    private String getDefaultOperator() {
+    @Override
+    public String getDefaultOperatorRef() {
         String providerCode = Context.getVerifiedProviderCode();
+        if (!operatorCache.containsKey(providerCode)) {
+            updateCaches(providerCode);
+        }
 
-        if (operatorCache.containsKey(providerCode)){
+        if (operatorCache.containsKey(providerCode) && !operatorCache.get(providerCode).isEmpty()){
             return operatorCache.get(providerCode).get(0).getId();
         }
         throw new IllegalArgumentException("No operator available for provider:" + providerCode);
@@ -230,15 +234,19 @@ public class CompanyRegistryImpl implements CompanyRegistry {
         }
         Optional<GeneralOrganisation> authority = getAuthority(authorityRef);
         if (authority.isEmpty()){
-            return getDefaultAuthority();
+            return getDefaultAuthorityRef();
         }
         return authorityRef;
     }
 
-    private String getDefaultAuthority() {
+    @Override
+    public String getDefaultAuthorityRef() {
         String providerCode = Context.getVerifiedProviderCode();
+        if (!authorityCache.containsKey(providerCode)) {
+            updateCaches(providerCode);
+        }
 
-        if (authorityCache.containsKey(providerCode)){
+        if (authorityCache.containsKey(providerCode) && !authorityCache.get(providerCode).isEmpty()){
             return authorityCache.get(providerCode).get(0).getId();
         }
         throw new IllegalArgumentException("No authority available for provider:" + providerCode);

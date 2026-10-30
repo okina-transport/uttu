@@ -18,13 +18,17 @@ package no.entur.uttu.export.netex;
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
+import no.entur.uttu.cache.TadQuayIdResolver;
 import no.entur.uttu.error.codederror.CodedError;
 import no.entur.uttu.error.codes.ErrorCodeEnumeration;
 import no.entur.uttu.export.model.ExportException;
 import no.entur.uttu.export.netex.producer.common.NetexCommonFileProducer;
 import no.entur.uttu.export.netex.producer.line.NetexLineFileProducer;
+import no.entur.uttu.model.FlexibleStopPlace;
 import no.entur.uttu.model.Line;
 import no.entur.uttu.model.ProviderEntity;
+import no.entur.uttu.model.Stop;
+import no.entur.uttu.model.StopPointInJourneyPattern;
 import no.entur.uttu.model.job.Export;
 import no.entur.uttu.model.job.ExportLineAssociation;
 import no.entur.uttu.repository.FixedLineRepository;
@@ -39,6 +43,8 @@ import org.springframework.stereotype.Component;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,16 +57,18 @@ public class NetexExporter {
     private final FixedLineRepository fixedLineRepository;
     private final NetexLineFileProducer netexLineFileProducer;
     private final NetexCommonFileProducer commonFileProducer;
+    private final TadQuayIdResolver tadQuayIdResolver;
 
     private JAXBContext jaxbContext;
 
     private NeTExValidator netexValidator;
 
-    public NetexExporter(FlexibleLineRepository flexibleLineRepository, FixedLineRepository fixedLineRepository, NetexLineFileProducer netexLineFileProducer, NetexCommonFileProducer commonFileProducer) {
+    public NetexExporter(FlexibleLineRepository flexibleLineRepository, FixedLineRepository fixedLineRepository, NetexLineFileProducer netexLineFileProducer, NetexCommonFileProducer commonFileProducer, TadQuayIdResolver tadQuayIdResolver) {
         this.flexibleLineRepository = flexibleLineRepository;
         this.fixedLineRepository = fixedLineRepository;
         this.netexLineFileProducer = netexLineFileProducer;
         this.commonFileProducer = commonFileProducer;
+        this.tadQuayIdResolver = tadQuayIdResolver;
     }
 
     @PostConstruct
@@ -81,6 +89,8 @@ public class NetexExporter {
 
         List<Line> linesToExport = findLinesToExport(export.getExportLineAssociations(), lines);
 
+        resolveImportedStopQuayIds(linesToExport, exportContext);
+
         linesToExport.stream()
                 .map(line -> netexLineFileProducer.toNetexFile(line, exportContext))
                 .forEach(netexFile -> marshalToFile(netexFile, dataSetProducer, validateAgainstSchema));
@@ -88,6 +98,37 @@ public class NetexExporter {
         marshalToFile(commonFileProducer.toCommonFile(exportContext), dataSetProducer, validateAgainstSchema);
 
         return linesToExport;
+    }
+
+    private void resolveImportedStopQuayIds(List<Line> lines, NetexExportContext context) {
+        Set<String> importedStopNetexIds = lines.stream()
+                .flatMap(line -> line.getJourneyPatterns().stream())
+                .filter(context::isValid)
+                .flatMap(journeyPattern -> journeyPattern.getPointsInSequence().stream())
+                .flatMap(this::getStops)
+                .filter(stop -> stop.getDatasetId() != null)
+                .map(Stop::getNetexId)
+                .collect(Collectors.toSet());
+
+        if (importedStopNetexIds.isEmpty()) {
+            return;
+        }
+
+        Map<String, String> quayIds = tadQuayIdResolver.resolve(context.provider.getCode(), importedStopNetexIds);
+        context.mobiItiQuayIdsByStopNetexId.putAll(quayIds);
+
+        List<String> unresolved = importedStopNetexIds.stream().filter(id -> !quayIds.containsKey(id)).sorted().toList();
+        if (!unresolved.isEmpty()) {
+            throw new IllegalArgumentException("Imported stop(s) not found in Tiamat: " + String.join(", ", unresolved));
+        }
+    }
+
+    private Stream<Stop> getStops(StopPointInJourneyPattern stopPoint) {
+        FlexibleStopPlace flexibleStopPlace = stopPoint.getFlexibleStopPlace();
+        if (flexibleStopPlace != null) {
+            return flexibleStopPlace.getStops().stream();
+        }
+        return Stream.ofNullable(stopPoint.getStop());
     }
 
     protected List<Line> findLinesToExport(Collection<ExportLineAssociation> exportLineAssociations, List<Line> lines) {
