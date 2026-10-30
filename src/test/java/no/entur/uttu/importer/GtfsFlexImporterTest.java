@@ -7,8 +7,10 @@ import no.entur.uttu.UttuIntegrationTest;
 import no.entur.uttu.importer.gtfsflex.GtfsFlexImporterService;
 import no.entur.uttu.model.*;
 import no.entur.uttu.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.jms.core.MessageCreator;
 
 import java.io.File;
@@ -18,8 +20,19 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 class GtfsFlexImporterTest extends UttuIntegrationTest {
+
+    @MockitoBean
+    private CompanyRegistry companyRegistry;
+
+    @BeforeEach
+    void mockCompanyRegistry() {
+        when(companyRegistry.getVerifiedOperatorRef(anyString())).thenReturn("TEST:Operator:1");
+        when(companyRegistry.getVerifiedAuthorityRef(anyString())).thenReturn("TEST:Authority:1");
+    }
 
     private static final File GTFS_FLEX = new File("src/test/resources/data/gtfs-flex.zip");
     private static final File GTFS_FLEX_UPDATED = new File("src/test/resources/data/gtfs-flex-updated.zip");
@@ -127,7 +140,7 @@ class GtfsFlexImporterTest extends UttuIntegrationTest {
         assertNotNull(flexibleAreaRepository.findByDatasetIdAndOriginalId("TEST", "c5"), "should create flexible area TEST c5");
 
         assertEquals(2, flexibleLineRepository.count(), "should create X flexible line(s)");
-        for (String netexId : List.of("TEST:Line:254", "TEST:Line:255")) {
+        for (String netexId : List.of("TEST:FlexibleLine:254", "TEST:FlexibleLine:255")) {
             assertNotNull(flexibleLineRepository.findByNetexId(netexId), "should create flexible line " + netexId);
         }
 

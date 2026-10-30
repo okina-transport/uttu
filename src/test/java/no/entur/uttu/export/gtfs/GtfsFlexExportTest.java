@@ -5,14 +5,17 @@ import no.entur.uttu.exporter.gtfsflex.GtfsFlexExporterService;
 import no.entur.uttu.importer.gtfsflex.GtfsFlexImporterService;
 
 import no.entur.uttu.model.IdFormat;
+import no.entur.uttu.repository.CompanyRegistry;
 import org.geojson.GeoJsonObject;
 import org.geojson.LngLatAlt;
 import org.geojson.Polygon;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.onebusaway.gtfs.model.*;
 import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 
 import java.io.File;
@@ -22,8 +25,19 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class GtfsFlexExportTest extends UttuIntegrationTest {
+
+    @MockitoBean
+    private CompanyRegistry companyRegistry;
+
+    @BeforeEach
+    void mockCompanyRegistry() {
+        when(companyRegistry.getVerifiedOperatorRef(anyString())).thenReturn("TEST:Operator:1");
+        when(companyRegistry.getVerifiedAuthorityRef(anyString())).thenReturn("TEST:Authority:1");
+    }
 
     @Autowired
     private GtfsFlexImporterService importerService;
