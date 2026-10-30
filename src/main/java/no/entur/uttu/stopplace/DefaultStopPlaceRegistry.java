@@ -93,7 +93,7 @@ public class DefaultStopPlaceRegistry implements StopPlaceRegistry {
 
     @PostConstruct
     private void setup() {
-        restTemplate.getMessageConverters().add(new NetexHttpMessageConverter());
+        restTemplate.getMessageConverters().addFirst(new NetexHttpMessageConverter());
     }
 
     @Override

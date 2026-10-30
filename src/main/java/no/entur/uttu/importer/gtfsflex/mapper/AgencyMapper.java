@@ -5,12 +5,19 @@ import no.entur.uttu.importer.gtfsflex.Referential;
 import no.entur.uttu.model.Codespace;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.Provider;
+import no.entur.uttu.repository.CompanyRegistry;
 import org.onebusaway.gtfs.model.Agency;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 public class AgencyMapper implements Mapper<Agency> {
+
+    private final CompanyRegistry companyRegistry;
+
+    public AgencyMapper(CompanyRegistry companyRegistry) {
+        this.companyRegistry = companyRegistry;
+    }
 
     @Override
     public void map(Agency gtfsEntity, Referential gtfsImportReferential) {
@@ -26,7 +33,7 @@ public class AgencyMapper implements Mapper<Agency> {
 
         Network network = gtfsImportReferential.getNetwork(gtfsEntity.getId());
         network.setName(gtfsEntity.getName());
-        network.setAuthorityRef(String.format("%s:Authority:%s", gtfsImportReferential.getDataset().toUpperCase(), gtfsEntity.getId()));
+        network.setAuthorityRef(companyRegistry.getVerifiedAuthorityRef(String.format("%s:Authority:%s", gtfsImportReferential.getDataset().toUpperCase(), gtfsEntity.getId())));
         network.setProvider(provider);
 
         log.debug("gtfsEntity {}", gtfsEntity);

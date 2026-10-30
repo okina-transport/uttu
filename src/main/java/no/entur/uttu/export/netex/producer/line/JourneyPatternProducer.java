@@ -94,8 +94,9 @@ public class JourneyPatternProducer {
             }
 
         } else {
-            addQuayRef(local.getStop().getNetexId(), context);
-            stopRef = objectFactory.createScheduledStopPointRefFromQuayRef(local.getStop().getNetexId(), context);
+            String quayRef = context.getQuayRef(local.getStop());
+            addQuayRef(quayRef, context);
+            stopRef = objectFactory.createScheduledStopPointRefFromQuayRef(quayRef, context);
         }
 
         Ref scheduledStopPointRef = NetexIdProducer.replaceEntityName(stopRef, ScheduledStopPoint.class.getSimpleName());

@@ -16,6 +16,7 @@
 package no.entur.uttu.export.netex.producer.line;
 
 import jakarta.xml.bind.JAXBElement;
+import lombok.Getter;
 import no.entur.uttu.export.netex.NetexExportContext;
 import no.entur.uttu.export.netex.producer.NetexObjectFactory;
 import no.entur.uttu.model.*;
@@ -50,8 +51,8 @@ public class RouteProducer {
      * User first and last StopPointInJourneyPattern as RoutePoints
      */
     private Route mapRoute(JourneyPattern journeyPattern, NetexExportContext context) {
-        StopPointInJourneyPattern firstStopPointInJP = journeyPattern.getPointsInSequence().get(0);
-        StopPointInJourneyPattern lastStopPointInJP = journeyPattern.getPointsInSequence().get(journeyPattern.getPointsInSequence().size() - 1);
+        StopPointInJourneyPattern firstStopPointInJP = journeyPattern.getPointsInSequence().getFirst();
+        StopPointInJourneyPattern lastStopPointInJP = journeyPattern.getPointsInSequence().getLast();
 
         PointsOnRoute_RelStructure pointsOnRoute_relStructure = new PointsOnRoute_RelStructure().withPointOnRoute().withPointOnRoute(
                 mapPointOnRoute(firstStopPointInJP, 1, context),
@@ -84,7 +85,8 @@ public class RouteProducer {
         if (stopPoint.getFlexibleStopPlace() != null) {
             ref = stopPoint.getFlexibleStopPlace().getRef();
         } else {
-            ref = objectFactory.createScheduledStopPointRefFromQuayRef(stopPoint.getStop().getNetexId(), context);
+            // Stops imported from GTFS flex are registered in Tiamat as TAD quays with a Mobi-iti id
+            ref = objectFactory.createScheduledStopPointRefFromQuayRef(context.getQuayRef(stopPoint.getStop()), context);
         }
 
         context.routePointRefs.add(ref);
@@ -94,12 +96,9 @@ public class RouteProducer {
                 .withPointRef(objectFactory.wrapRefStructure(new RoutePointRefStructure(), ref, false));
     }
 
+    @Getter
     private static class LineVisitor implements no.entur.uttu.model.LineVisitor {
         private LineRefStructure line;
-
-        public LineRefStructure getLine() {
-            return line;
-        }
 
         @Override
         public void visitFixedLine(FixedLine fixedLine) {

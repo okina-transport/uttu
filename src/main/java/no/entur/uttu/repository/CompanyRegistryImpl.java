@@ -215,7 +215,7 @@ public class CompanyRegistryImpl implements CompanyRegistry {
     private String getDefaultOperator() {
         String providerCode = Context.getVerifiedProviderCode();
 
-        if (operatorCache.containsKey(providerCode)){
+        if (operatorCache.containsKey(providerCode) && !operatorCache.get(providerCode).isEmpty()){
             return operatorCache.get(providerCode).get(0).getId();
         }
         throw new IllegalArgumentException("No operator available for provider:" + providerCode);
@@ -238,7 +238,7 @@ public class CompanyRegistryImpl implements CompanyRegistry {
     private String getDefaultAuthority() {
         String providerCode = Context.getVerifiedProviderCode();
 
-        if (authorityCache.containsKey(providerCode)){
+        if (authorityCache.containsKey(providerCode) && !authorityCache.get(providerCode).isEmpty()){
             return authorityCache.get(providerCode).get(0).getId();
         }
         throw new IllegalArgumentException("No authority available for provider:" + providerCode);
