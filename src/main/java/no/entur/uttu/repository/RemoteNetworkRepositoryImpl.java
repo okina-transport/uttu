@@ -2,7 +2,6 @@ package no.entur.uttu.repository;
 
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import no.entur.uttu.config.Context;
 import no.entur.uttu.model.Network;
 import no.entur.uttu.model.Provider;
@@ -19,6 +18,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -34,13 +36,16 @@ public class RemoteNetworkRepositoryImpl extends SimpleJpaRepository<Network, Lo
     private final EntityManager entityManager;
     private final RestTemplate restTemplate = createRestTemplate();
     private final TokenService tokenService;
+    private final TransactionTemplate syncTransactionTemplate;
     @Value("${network.registry.url}")
     private String networkRegistryUrl;
 
-    public RemoteNetworkRepositoryImpl(EntityManager entityManager, TokenService tokenService) {
+    public RemoteNetworkRepositoryImpl(EntityManager entityManager, TokenService tokenService, PlatformTransactionManager transactionManager) {
         super(Network.class, entityManager);
         this.entityManager = entityManager;
         this.tokenService = tokenService;
+        this.syncTransactionTemplate = new TransactionTemplate(transactionManager);
+        this.syncTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
 
@@ -60,7 +65,7 @@ public class RemoteNetworkRepositoryImpl extends SimpleJpaRepository<Network, Lo
                     getEntityWithAuthenticationToken(providerCode),
                     List.class);
             List<Network> networks = buildNetworkListFromResponse(rateResponse);
-            updateNetworksInDB(networks);
+            syncTransactionTemplate.executeWithoutResult(status -> updateNetworksInDB(networks));
         } catch (Exception e) {
             log.error("Error on network sync", e);
         }
@@ -72,35 +77,44 @@ public class RemoteNetworkRepositoryImpl extends SimpleJpaRepository<Network, Lo
     public void updateNetworksInDB(List<Network> networksFromChouette) {
         String providerCode = Context.getVerifiedProviderCode();
 
-
-        Provider provider = entityManager.createQuery("from Provider p where p.name = :providerName", Provider.class)
-                .setParameter("providerName", providerCode)
+        Provider provider = entityManager.createQuery("from Provider p where p.code = :providerCode", Provider.class)
+                .setParameter("providerCode", providerCode)
                 .getSingleResult();
 
-
         for (Network newNetwork : networksFromChouette) {
-            Network existingNetwork = null;
-            try {
-                existingNetwork = entityManager.createQuery("from Network e where e.provider.code=:providerCode and e.name = :name", Network.class)
-                        .setParameter("providerCode", providerCode)
-                        .setParameter("name", newNetwork.getName())
-                        .getSingleResult();
-            } catch (NoResultException e) {
-                log.info("No network found for provider code: {} and name: {}. Creating new one", providerCode, newNetwork.getName());
-            }
-
+            Network existingNetwork = findProviderNetworkByNetexId(providerCode, newNetwork.getNetexId())
+                    .or(() -> findProviderNetworkByName(providerCode, newNetwork.getName()))
+                    .orElse(null);
 
             if (existingNetwork == null) {
+                log.info("No network found for provider code: {}, netexId: {} and name: {}. Creating new one", providerCode, newNetwork.getNetexId(), newNetwork.getName());
                 newNetwork.setProvider(provider);
                 entityManager.persist(newNetwork);
             } else {
                 existingNetwork.setNetexId(newNetwork.getNetexId());
+                existingNetwork.setName(newNetwork.getName());
                 existingNetwork.setAuthorityRef(newNetwork.getAuthorityRef());
                 entityManager.merge(existingNetwork);
             }
+            entityManager.flush();
         }
-        entityManager.flush();
+    }
 
+    private Optional<Network> findProviderNetworkByNetexId(String providerCode, String netexId) {
+        if (netexId == null) {
+            return Optional.empty();
+        }
+        return entityManager.createQuery("from Network e where e.provider.code=:providerCode and e.netexId = :netexId", Network.class)
+                .setParameter("providerCode", providerCode)
+                .setParameter("netexId", netexId)
+                .getResultList().stream().findFirst();
+    }
+
+    private Optional<Network> findProviderNetworkByName(String providerCode, String name) {
+        return entityManager.createQuery("from Network e where e.provider.code=:providerCode and e.name = :name", Network.class)
+                .setParameter("providerCode", providerCode)
+                .setParameter("name", name)
+                .getResultList().stream().findFirst();
     }
 
 

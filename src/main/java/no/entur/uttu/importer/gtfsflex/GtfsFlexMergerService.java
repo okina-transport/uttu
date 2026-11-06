@@ -86,7 +86,6 @@ public class GtfsFlexMergerService {
         for (var network : gtfsImportReferential.getNetworksByOriginalId().values()) {
             Network existingNetwork = networkRepository.findByNetexId(network.getNetexId());
             if (existingNetwork != null){
-                existingNetwork.setName(network.getName());
                 dbReferential.getNetworksByOriginalId().put(network.getOriginalId(), existingNetwork);
             }
         }
